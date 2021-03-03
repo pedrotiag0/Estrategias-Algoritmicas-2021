@@ -12,11 +12,39 @@
 
 using namespace std;
 
-/*
-vector<int> swipeLeft(vector<int> tabuleiro) {
+vector<int> swipeRight(vector<int> vec, int N) {
+    vector<int>::iterator inicio_linha;
+    bool flag;
 
+    for (int i = 0; i < N; i++) //Avança a linha do tabuleiro
+    {
+        inicio_linha = vec.begin() + (i * N);
+        for (vector<int>::iterator it = inicio_linha + N - 1; it != inicio_linha; it--) //it varia do fim da linha até ao index 1 (não chega ao 1º elemento da linha)
+        {
+            if ((*it == *(it - 1)) && (*it != 0))
+            {
+                *it = *it * 2;          //[0][0][2][2] -> [0][0][2][4]           [2][2][0][4] -> [2][4][0][4]
+                *(it - 1) = 0;          //[0][0][2][4] -> [0][0][0][4]           [2][4][0][4] -> [0][4][0][4]
+                it--;
+            }
+        }
+        flag = true;
+        while (flag)
+        {
+            flag = false;
+            for (vector<int>::iterator it = inicio_linha + N - 1; it != inicio_linha; it--) // Vai ordenar a linha [4][0][0][4] -> [0][0][4][4]
+            {
+                if ((*it == 0) && (*(it - 1) != 0))
+                {
+                    *it = *(it - 1);                                                //[4][0][0][4] -> [4][4][0][4]
+                    *(it - 1) = 0;                                                  //[4][4][0][4] -> [0][4][0][4]
+                    flag = true;
+                }
+            }
+        }
+    }
+    return vec;
 }
-*/
 
 void imprimeTabuleiro(vector<int> tabuleiro, int N) {
     int paragrafo = 0;
