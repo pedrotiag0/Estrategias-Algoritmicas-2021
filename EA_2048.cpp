@@ -12,7 +12,7 @@
 
 using namespace std;
 
-vector<int> swipeRight(vector<int> vec, int N) {
+vector<int> swipeRight(vector<int> vec, int N) { // Swipe para a direita
     vector<int>::iterator inicio_linha;
     bool flag;
 
@@ -54,6 +54,7 @@ void imprimeTabuleiro(vector<int> tabuleiro, int N) {
             paragrafo = 0;
             cout << endl;
         }
+        paragrafo++;
         cout << tabuleiro[i] <<" ";
     }
     cout << endl <<"_______________________" << endl;
@@ -83,7 +84,6 @@ int main()
     unsigned short int N = 0, M;
 
     for (int i = 0; i < total ; i++) {              // Le e processa cada caso de teste
-        cout << "Nova leitura!" << endl;
         cin >> N >> M;
         cin.ignore();
         tabuleiro_2048.clear();
@@ -94,9 +94,10 @@ int main()
                 tabuleiro_line.erase(0, pos + delimiter.length());
             }
             tabuleiro_2048.push_back(stoi(tabuleiro_line));
-            // Le linha de jogo (que estruturas de dados vamos usar?, criar arrays (ficam na stack) ou vetores (heap e sao dinamicos))
         }
         //solution.push_back(jogo_2048());
+        imprimeTabuleiro(tabuleiro_2048, N);
+        tabuleiro_2048 = swipeRight(tabuleiro_2048, N);
         imprimeTabuleiro(tabuleiro_2048, N);
     }
 
