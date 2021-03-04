@@ -1,0 +1,3 @@
+Podíamos fazer o seguinte algoritmo: sempre que fizesse um swipe (esq, dir, cima, baixo) e não alterasse o tabuleiro,
+descartávamos logo essa sequência de movimentos. Porque há de haver uma combinação que tenha todos os movimentos seguidos
+que leva (ou não) ao resultado final!
