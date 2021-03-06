@@ -12,20 +12,20 @@
 
 using namespace std;
 
-vector<int> swipeRight(vector<int> vec, int N) {
+vector<int> swipeRight(vector<int> vec, int N) { // Done
     vector<int>::iterator inicio_linha;
     bool flag;
 
-    for (int i = 0; i < N; i++) //Avança a linha do tabuleiro
+    for (int i = 0; i < N; i++)         //  Avança a linha do tabuleiro
     {
         inicio_linha = vec.begin() + (i * N);
         for (vector<int>::iterator it = inicio_linha + N - 1; it > inicio_linha; it--) //it varia do fim da linha até ao index 1 (não chega ao 1º elemento da linha)
         {
             if ((*it == *(it - 1)) && (*it != 0)  )
             {
-                *it = *it * 2;          //[0][0][2][2] -> [0][0][2][4]           [2][2][0][4] -> [2][4][0][4]
-                *(it - 1) = 0;          //[0][0][2][4] -> [0][0][0][4]           [2][4][0][4] -> [0][4][0][4]
-                it--; // Pode ser ainda mais otimizado
+                *it = *it * 2;          //  [0][0][2][2] -> [0][0][2][4]           [2][2][0][4] -> [2][4][0][4]
+                *(it - 1) = 0;          //  [0][0][2][4] -> [0][0][0][4]           [2][4][0][4] -> [0][4][0][4]
+                it--;                   //  Pode ser ainda mais otimizado
             }
         }
         flag = true;
@@ -36,9 +36,43 @@ vector<int> swipeRight(vector<int> vec, int N) {
             {
                 if ((*it == 0) && (*(it - 1) != 0))
                 {
-                    *it = *(it - 1);                                                //[4][0][0][4] -> [4][4][0][4]
-                    *(it - 1) = 0;                                                  //[4][4][0][4] -> [0][4][0][4]
-                    flag = true;
+                    *it = *(it - 1);                                                //  [4][0][0][4] -> [4][4][0][4]
+                    *(it - 1) = 0;                                                  //  [4][4][0][4] -> [0][4][0][4]
+                    flag = true;                                                    //  Repete iterativamente até a linha ficar ordenada
+                }
+            }
+        }
+    }
+    return vec;
+}
+
+vector<int> swipeLeft(vector<int> vec, int N) { // Done
+    vector<int>::iterator fim_linha;
+    bool flag;
+
+    for (int i = 0; i < N; i++)         //  Avança a linha do tabuleiro
+    {
+        fim_linha = vec.begin() + (i * N) + (N - 1);
+        for (vector<int>::iterator it = fim_linha - (N - 1); it < fim_linha; it++) //it varia do inicio da linha até ao index N (não chega ao ultimo elemento da linha)
+        {
+            if ((*it == *(it + 1)) && (*it != 0))
+            {
+                *it = *it * 2;          //  [2][2][0][0] -> [4][2][0][0]           [4][0][2][2] -> [4][0][4][2]
+                *(it + 1) = 0;          //  [4][2][0][0] -> [4][0][0][0]           [4][0][4][2] -> [4][0][4][0]
+                it--;                   //  Pode ser ainda mais otimizado
+            }
+        }
+        flag = true;
+        while (flag)
+        {
+            flag = false;
+            for (vector<int>::iterator it = fim_linha - (N - 1); it < fim_linha; it++) // Vai ordenar a linha [4][0][0][4] -> [4][4][0][0]
+            {
+                if ((*it == 0) && (*(it + 1) != 0))
+                {
+                    *it = *(it + 1);                                                //  [4][0][0][4] -> [4][0][4][4]
+                    *(it + 1) = 0;                                                  //  [4][0][4][4] -> [4][0][4][0]
+                    flag = true;                                                    //  Repete iterativamente até a linha ficar ordenada
                 }
             }
         }
@@ -97,7 +131,10 @@ int main()
         }
         //solution.push_back(jogo_2048());
         imprimeTabuleiro(tabuleiro_2048, N);
-        tabuleiro_2048 = swipeRight(tabuleiro_2048, N);
+        //tabuleiro_2048 = swipeRight(tabuleiro_2048, N);
+        tabuleiro_2048 = swipeLeft(tabuleiro_2048, N);
+        //tabuleiro_2048 = swipeUp(tabuleiro_2048, N);
+        //tabuleiro_2048 = swipeDown(tabuleiro_2048, N);
         imprimeTabuleiro(tabuleiro_2048, N);
     }
 
