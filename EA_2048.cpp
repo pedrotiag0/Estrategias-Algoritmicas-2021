@@ -237,67 +237,67 @@ bool verificaVitoria(vector<int> tabuleiro) {
 }
 
 class Node {
-    public:
-        int path;
-        int nivel;
-        vector<int> tabuleiro_inicial;
-        Node* tabuleiro_right;
-        Node* tabuleiro_left;
-        Node* tabuleiro_up;
-        Node* tabuleiro_down;
+public:
+    int path;
+    int nivel;
+    vector<int> tabuleiro_inicial;
+    Node* tabuleiro_right;
+    Node* tabuleiro_left;
+    Node* tabuleiro_up;
+    Node* tabuleiro_down;
 
-        Node(int nivel, vector<int> tabuleiro_inicial, int path) //CONSTRUTOR
+    Node(int nivel, vector<int> tabuleiro_inicial, int path) //CONSTRUTOR
+    {
+        this->nivel = nivel;
+
+        if (this->nivel == 0)
         {
-            this->nivel = nivel;
-
-            if (this->nivel == 0)
-            {
-                this->path = 0;
-            }
-            else
-            {
-                this->path = path;
-            }
-
-            switch (path)
-            {
-                case ESQ:
-                    this->tabuleiro_inicial = swipeLeft(tabuleiro_inicial);
-                    break;
-                case DIR:
-                    this->tabuleiro_inicial = swipeRight(tabuleiro_inicial);
-                    break;
-                case UP:
-                    this->tabuleiro_inicial = swipeUp(tabuleiro_inicial);
-                    break;
-                case DWN:
-                    this->tabuleiro_inicial = swipeDown(tabuleiro_inicial);
-                    break;
-                default:
-                    this->tabuleiro_inicial = tabuleiro_inicial;
-                    break;
-            }
-      
-            if (verificaVitoria(this->tabuleiro_inicial))
-            {
-                limiar = this->nivel;
-            }
-
-            if (this->nivel < limiar)
-            {
-                //CRIAR OS FILHOS
-                Node filho_right(this->nivel + 1, this->tabuleiro_inicial, DIR);
-                Node filho_left(this->nivel + 1, this->tabuleiro_inicial, ESQ);
-                Node filho_up(this->nivel + 1, this->tabuleiro_inicial, UP);
-                Node filho_down(this->nivel + 1, this->tabuleiro_inicial, DWN);
-            }
+            this->path = 0;
         }
+        else
+        {
+            this->path = path;
+        }
+
+        switch (path)
+        {
+        case ESQ:
+            this->tabuleiro_inicial = swipeLeft(tabuleiro_inicial);
+            break;
+        case DIR:
+            this->tabuleiro_inicial = swipeRight(tabuleiro_inicial);
+            break;
+        case UP:
+            this->tabuleiro_inicial = swipeUp(tabuleiro_inicial);
+            break;
+        case DWN:
+            this->tabuleiro_inicial = swipeDown(tabuleiro_inicial);
+            break;
+        default:
+            this->tabuleiro_inicial = tabuleiro_inicial;
+            break;
+        }
+
+        if (verificaVitoria(this->tabuleiro_inicial))
+        {
+            limiar = this->nivel;
+        }
+
+        if (this->nivel < limiar)
+        {
+            //CRIAR OS FILHOS
+            Node filho_right(this->nivel + 1, this->tabuleiro_inicial, DIR);
+            Node filho_left(this->nivel + 1, this->tabuleiro_inicial, ESQ);
+            Node filho_up(this->nivel + 1, this->tabuleiro_inicial, UP);
+            Node filho_down(this->nivel + 1, this->tabuleiro_inicial, DWN);
+        }
+    }
 };
 
 string jogo_2048(int M, vector<int> vec) {
 
     // Creation of tree
-    Node root(0,vec,0);
+    Node root(0, vec, 0);
 
     if (limiar > M) {
         return "no solution";
@@ -314,9 +314,10 @@ int main()
     vector<string> solution;                        // Solucao
 
     vector<int> tabuleiro_2048;                     // Tabuleiro do jogo
-    string tabuleiro_line;                          // Linha a ser lida
-    size_t pos = 0;
-    string delimiter = " ";
+    //string tabuleiro_line;                          // Linha a ser lida
+    int tabuleiro_elem;
+    //size_t pos = 0;
+    //string delimiter = " ";
 
     int total;                                      // Numero de casos de teste
     cin >> total;
@@ -326,13 +327,15 @@ int main()
         limiar = M + 1;
         cin.ignore();
         tabuleiro_2048.clear();
-        for (int j = 0; j < N; j++) {
-            getline(cin, tabuleiro_line);
+        for (int j = 0; j < N*N; j++) {
+            /*getline(cin, tabuleiro_line);
             while ((pos = tabuleiro_line.find(delimiter)) != std::string::npos) {
                 tabuleiro_2048.push_back(stoi(tabuleiro_line.substr(0, pos)));
                 tabuleiro_line.erase(0, pos + delimiter.length());
             }
-            tabuleiro_2048.push_back(stoi(tabuleiro_line));
+            tabuleiro_2048.push_back(stoi(tabuleiro_line));*/
+            cin >> tabuleiro_elem;
+            tabuleiro_2048.push_back(tabuleiro_elem);
         }
 
         solution.push_back(jogo_2048(M, tabuleiro_2048));
