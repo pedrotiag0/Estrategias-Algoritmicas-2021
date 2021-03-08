@@ -205,6 +205,19 @@ vector<int> swipeDown(vector<int> vec, int N) { // Done
     return vec;
 }
 
+bool verificaVitoria(vector<int> tabuleiro, int N) {
+    bool vitoria = false;
+    for (int i = 0; i < N * N; i++) {
+        if ((tabuleiro[i] != 0) && (vitoria == false))
+            vitoria = true;
+        else if ((tabuleiro[i] != 0) && (vitoria == true))
+            return false;
+        else
+            continue;
+    }
+    return vitoria;
+}
+
 void imprimeTabuleiro(vector<int> tabuleiro, int N) {
     int paragrafo = 0;
     cout << "_______________________" << endl;
@@ -260,7 +273,7 @@ int main()
         //tabuleiro_2048 = swipeRight(tabuleiro_2048, N);
         //tabuleiro_2048 = swipeLeft(tabuleiro_2048, N);
         //tabuleiro_2048 = swipeUp(tabuleiro_2048, N);
-        //tabuleiro_2048 = swipeDown(tabuleiro_2048, N);
+        tabuleiro_2048 = swipeDown(tabuleiro_2048, N);
         imprimeTabuleiro(tabuleiro_2048, N);
     }
 
