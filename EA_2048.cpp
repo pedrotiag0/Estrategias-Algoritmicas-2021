@@ -10,11 +10,29 @@
 #include <vector>
 #include <string>
 
+#define ESQ 1
+#define DIR 2
+#define UP 3
+#define DWN 4
+
 using namespace std;
+int N, M, limiar;
 
-int N, limiar;
+void imprimeTabuleiro(vector<int> tabuleiro) {
+    int paragrafo = 0;
+    cout << "_______________________" << endl;
+    for (int i = 0; i < N * N; i++) {
+        if (paragrafo == N) {
+            paragrafo = 0;
+            cout << endl;
+        }
+        paragrafo++;
+        cout << tabuleiro[i] << " ";
+    }
+    cout << endl << "_______________________" << endl;
+}
 
-vector<int> swipeRight(vector<int> vec, int N) { // Done
+vector<int> swipeRight(vector<int> vec) { // Done
     vector<int>::iterator inicio_linha;
     bool flag;
 
@@ -37,7 +55,7 @@ vector<int> swipeRight(vector<int> vec, int N) { // Done
         }
         for (vector<int>::iterator it = inicio_linha + N - 1; it > inicio_linha; it--) //it varia do fim da linha até ao index 1 (não chega ao 1º elemento da linha)
         {
-            if ((*it == *(it - 1)) && (*it != 0)  )
+            if ((*it == *(it - 1)) && (*it != 0))
             {
                 *it = *it * 2;          //  [0][0][2][2] -> [0][0][2][4]           [2][2][0][4] -> [2][4][0][4]
                 *(it - 1) = 0;          //  [0][0][2][4] -> [0][0][0][4]           [2][4][0][4] -> [0][4][0][4]
@@ -62,7 +80,7 @@ vector<int> swipeRight(vector<int> vec, int N) { // Done
     return vec;
 }
 
-vector<int> swipeLeft(vector<int> vec, int N) { // Done
+vector<int> swipeLeft(vector<int> vec) { // Done
     vector<int>::iterator fim_linha;
     bool flag;
 
@@ -110,7 +128,7 @@ vector<int> swipeLeft(vector<int> vec, int N) { // Done
     return vec;
 }
 
-vector<int> swipeUp(vector<int> vec, int N) { // Done
+vector<int> swipeUp(vector<int> vec) { // Done
     vector<int>::iterator inicio_coluna;
     bool flag;
 
@@ -131,12 +149,12 @@ vector<int> swipeUp(vector<int> vec, int N) { // Done
                 }
             }
         }
-        for (vector<int>::iterator it = inicio_coluna ; it < inicio_coluna + (N*(N - 1)); it += N) //it varia do inicio da coluna até ao final da mesma (não chega ao ultimo elemento da coluna)
+        for (vector<int>::iterator it = inicio_coluna; it < inicio_coluna + (N * (N - 1)); it += N) //it varia do inicio da coluna até ao final da mesma (não chega ao ultimo elemento da coluna)
         {
             if ((*it == *(it + N)) && (*it != 0))
             {
-                *it = *it * 2;          
-                *(it + N) = 0;          
+                *it = *it * 2;
+                *(it + N) = 0;
                 //it--;                   //  Pode ser ainda mais otimizado
             }
         }
@@ -144,12 +162,12 @@ vector<int> swipeUp(vector<int> vec, int N) { // Done
         while (flag)
         {
             flag = false;
-            for (vector<int>::iterator it = inicio_coluna; it < inicio_coluna + (N * (N - 1)); it += N) 
+            for (vector<int>::iterator it = inicio_coluna; it < inicio_coluna + (N * (N - 1)); it += N)
             {
                 if ((*it == 0) && (*(it + N) != 0))
                 {
-                    *it = *(it + N);                                                
-                    *(it + N) = 0;                                                  
+                    *it = *(it + N);
+                    *(it + N) = 0;
                     flag = true;                                                    //  Repete iterativamente até a coluna ficar ordenada
                 }
             }
@@ -158,7 +176,7 @@ vector<int> swipeUp(vector<int> vec, int N) { // Done
     return vec;
 }
 
-vector<int> swipeDown(vector<int> vec, int N) { // Done
+vector<int> swipeDown(vector<int> vec) { // Done
     vector<int>::iterator fim_coluna;
     bool flag;
 
@@ -207,37 +225,79 @@ vector<int> swipeDown(vector<int> vec, int N) { // Done
     return vec;
 }
 
-bool verificaVitoria(vector<int> tabuleiro, int N) {
+bool verificaVitoria(vector<int> tabuleiro) {
     bool vitoria = false;
     for (int i = 0; i < N * N; i++) {
         if ((tabuleiro[i] != 0) && (vitoria == false))
             vitoria = true;
         else if ((tabuleiro[i] != 0) && (vitoria == true))
             return false;
-        else
-            continue;
     }
     return vitoria;
 }
 
-void imprimeTabuleiro(vector<int> tabuleiro, int N) {
-    int paragrafo = 0;
-    cout << "_______________________" << endl;
-    for (int i = 0; i < N*N ; i++) {
-        if (paragrafo == N) {
-            paragrafo = 0;
-            cout << endl;
-        }
-        paragrafo++;
-        cout << tabuleiro[i] <<" ";
-    }
-    cout << endl <<"_______________________" << endl;
-}
+class Node {
+    public:
+        int path;
+        int nivel;
+        vector<int> tabuleiro_inicial;
+        Node* tabuleiro_right;
+        Node* tabuleiro_left;
+        Node* tabuleiro_up;
+        Node* tabuleiro_down;
 
-string jogo_2048(int M, int N, vector<int> vec) {
+        Node(int nivel, vector<int> tabuleiro_inicial, int path) //CONSTRUTOR
+        {
+            this->nivel = nivel;
+
+            if (this->nivel == 0)
+            {
+                this->path = 0;
+            }
+            else
+            {
+                this->path = path;
+            }
+
+            switch (path)
+            {
+                case ESQ:
+                    this->tabuleiro_inicial = swipeLeft(tabuleiro_inicial);
+                    break;
+                case DIR:
+                    this->tabuleiro_inicial = swipeRight(tabuleiro_inicial);
+                    break;
+                case UP:
+                    this->tabuleiro_inicial = swipeUp(tabuleiro_inicial);
+                    break;
+                case DWN:
+                    this->tabuleiro_inicial = swipeDown(tabuleiro_inicial);
+                    break;
+                default:
+                    this->tabuleiro_inicial = tabuleiro_inicial;
+                    break;
+            }
+      
+            if (verificaVitoria(this->tabuleiro_inicial))
+            {
+                limiar = this->nivel;
+            }
+
+            if (this->nivel < limiar)
+            {
+                //CRIAR OS FILHOS
+                Node filho_right(this->nivel + 1, this->tabuleiro_inicial, DIR);
+                Node filho_left(this->nivel + 1, this->tabuleiro_inicial, ESQ);
+                Node filho_up(this->nivel + 1, this->tabuleiro_inicial, UP);
+                Node filho_down(this->nivel + 1, this->tabuleiro_inicial, DWN);
+            }
+        }
+};
+
+string jogo_2048(int M, vector<int> vec) {
 
     // Creation of tree
-
+    Node root(0,vec,0);
 
     if (limiar > M) {
         return "no solution";
@@ -261,9 +321,7 @@ int main()
     int total;                                      // Numero de casos de teste
     cin >> total;
 
-    int M;
-
-    for (int i = 0; i < total ; i++) {              // Le e processa cada caso de teste
+    for (int i = 0; i < total; i++) {              // Le e processa cada caso de teste
         cin >> N >> M;
         limiar = M + 1;
         cin.ignore();
@@ -277,16 +335,14 @@ int main()
             tabuleiro_2048.push_back(stoi(tabuleiro_line));
         }
 
-
-        solution.push_back(jogo_2048(M, N, tabuleiro_2048));
-
+        solution.push_back(jogo_2048(M, tabuleiro_2048));
 
         //imprimeTabuleiro(tabuleiro_2048, N);
-        //tabuleiro_2048 = swipeRight(tabuleiro_2048, N);
+        //tabuleiro_2048 = swipeRight(tabuleiro_2048);
         //tabuleiro_2048 = swipeLeft(tabuleiro_2048, N);
         //tabuleiro_2048 = swipeUp(tabuleiro_2048, N);
         //tabuleiro_2048 = swipeDown(tabuleiro_2048, N);
-        imprimeTabuleiro(tabuleiro_2048, N);
+        //imprimeTabuleiro(tabuleiro_2048);
     }
 
     for (auto i : solution) {                        //Imprime output
