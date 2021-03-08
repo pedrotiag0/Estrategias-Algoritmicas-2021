@@ -12,6 +12,8 @@
 
 using namespace std;
 
+int N, limiar;
+
 vector<int> swipeRight(vector<int> vec, int N) { // Done
     vector<int>::iterator inicio_linha;
     bool flag;
@@ -232,9 +234,15 @@ void imprimeTabuleiro(vector<int> tabuleiro, int N) {
     cout << endl <<"_______________________" << endl;
 }
 
-string jogo_2048() {
+string jogo_2048(int M, int N, vector<int> vec) {
 
-    return "?";
+    // Creation of tree
+
+
+    if (limiar > M) {
+        return "no solution";
+    }
+    return to_string(limiar);
 }
 
 int main()
@@ -253,10 +261,11 @@ int main()
     int total;                                      // Numero de casos de teste
     cin >> total;
 
-    unsigned short int N = 0, M;
+    int M;
 
     for (int i = 0; i < total ; i++) {              // Le e processa cada caso de teste
         cin >> N >> M;
+        limiar = M + 1;
         cin.ignore();
         tabuleiro_2048.clear();
         for (int j = 0; j < N; j++) {
@@ -267,13 +276,16 @@ int main()
             }
             tabuleiro_2048.push_back(stoi(tabuleiro_line));
         }
-        //solution.push_back(jogo_2048());
+
+
+        solution.push_back(jogo_2048(M, N, tabuleiro_2048));
+
 
         //imprimeTabuleiro(tabuleiro_2048, N);
         //tabuleiro_2048 = swipeRight(tabuleiro_2048, N);
         //tabuleiro_2048 = swipeLeft(tabuleiro_2048, N);
         //tabuleiro_2048 = swipeUp(tabuleiro_2048, N);
-        tabuleiro_2048 = swipeDown(tabuleiro_2048, N);
+        //tabuleiro_2048 = swipeDown(tabuleiro_2048, N);
         imprimeTabuleiro(tabuleiro_2048, N);
     }
 
