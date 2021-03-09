@@ -34,7 +34,7 @@ void imprimeTabuleiro(vector<int> tabuleiro) {
 
 vector<int> swipeRight(vector<int> vec) { // Done
     vector<int>::iterator inicio_linha;
-    bool flag;
+    bool flag, modificado = false;
 
     for (int i = 0; i < N; i++)         //  Avança a linha do tabuleiro
     {
@@ -50,6 +50,7 @@ vector<int> swipeRight(vector<int> vec) { // Done
                     *it = *(it - 1);                                                //  [4][0][0][4] -> [4][4][0][4]
                     *(it - 1) = 0;                                                  //  [4][4][0][4] -> [0][4][0][4]
                     flag = true;                                                    //  Repete iterativamente até a linha ficar ordenada
+                    modificado = true;
                 }
             }
         }
@@ -60,6 +61,7 @@ vector<int> swipeRight(vector<int> vec) { // Done
                 *it = *it * 2;          //  [0][0][2][2] -> [0][0][2][4]           [2][2][0][4] -> [2][4][0][4]
                 *(it - 1) = 0;          //  [0][0][2][4] -> [0][0][0][4]           [2][4][0][4] -> [0][4][0][4]
                 //it--;                   //  Pode ser ainda mais otimizado
+                modificado = true;
             }
         }
         flag = true;
@@ -77,12 +79,16 @@ vector<int> swipeRight(vector<int> vec) { // Done
             }
         }
     }
+    if (!modificado) {
+        vec[0] = -1;
+        return vec;
+    }
     return vec;
 }
 
 vector<int> swipeLeft(vector<int> vec) { // Done
     vector<int>::iterator fim_linha;
-    bool flag;
+    bool flag, modificado = false;
 
     for (int i = 0; i < N; i++)         //  Avança a linha do tabuleiro
     {
@@ -98,6 +104,7 @@ vector<int> swipeLeft(vector<int> vec) { // Done
                     *it = *(it + 1);                                                //  [4][0][0][4] -> [4][0][4][4]
                     *(it + 1) = 0;                                                  //  [4][0][4][4] -> [4][0][4][0]
                     flag = true;                                                    //  Repete iterativamente até a linha ficar ordenada
+                    modificado = true;
                 }
             }
         }
@@ -108,6 +115,7 @@ vector<int> swipeLeft(vector<int> vec) { // Done
                 *it = *it * 2;          //  [2][2][0][0] -> [4][2][0][0]           [4][0][2][2] -> [4][0][4][2]
                 *(it + 1) = 0;          //  [4][2][0][0] -> [4][0][0][0]           [4][0][4][2] -> [4][0][4][0]
                 //it++;                   //  Pode ser ainda mais otimizado !WARNING!
+                modificado = true;
             }
         }
         flag = true;
@@ -125,12 +133,16 @@ vector<int> swipeLeft(vector<int> vec) { // Done
             }
         }
     }
+    if (!modificado) {
+        vec[0] = -1;
+        return vec;
+    }
     return vec;
 }
 
 vector<int> swipeUp(vector<int> vec) { // Done
     vector<int>::iterator inicio_coluna;
-    bool flag;
+    bool flag, modificado = false;
 
     for (int i = 0; i < N; i++)         //  Avança a coluna do tabuleiro
     {
@@ -146,6 +158,7 @@ vector<int> swipeUp(vector<int> vec) { // Done
                     *it = *(it + N);
                     *(it + N) = 0;
                     flag = true;                                                    //  Repete iterativamente até a coluna ficar ordenada
+                    modificado = true;
                 }
             }
         }
@@ -156,6 +169,7 @@ vector<int> swipeUp(vector<int> vec) { // Done
                 *it = *it * 2;
                 *(it + N) = 0;
                 //it--;                   //  Pode ser ainda mais otimizado
+                modificado = true;
             }
         }
         flag = true;
@@ -173,13 +187,16 @@ vector<int> swipeUp(vector<int> vec) { // Done
             }
         }
     }
+    if (!modificado) {
+        vec[0] = -1;
+        return vec;
+    }
     return vec;
 }
 
 vector<int> swipeDown(vector<int> vec) { // Done
     vector<int>::iterator fim_coluna;
-    bool flag;
-
+    bool flag, modificado = false;
     for (int i = 0; i < N; i++)         //  Avança a coluna do tabuleiro
     {
 
@@ -195,6 +212,7 @@ vector<int> swipeDown(vector<int> vec) { // Done
                     *it = *(it - N);
                     *(it - N) = 0;
                     flag = true;                                                    //  Repete iterativamente até a coluna ficar ordenada
+                    modificado = true;
                 }
             }
         }
@@ -205,6 +223,7 @@ vector<int> swipeDown(vector<int> vec) { // Done
                 *it = *it * 2;
                 *(it - N) = 0;
                 //it--;                   //  Pode ser ainda mais otimizado
+                modificado = true;
             }
         }
         flag = true;
@@ -221,6 +240,10 @@ vector<int> swipeDown(vector<int> vec) { // Done
                 }
             }
         }
+    }
+    if (!modificado) {
+        vec[0] = -1;
+        return vec;
     }
     return vec;
 }
@@ -241,10 +264,10 @@ public:
     int path;
     int nivel;
     vector<int> tabuleiro_inicial;
-    Node* tabuleiro_right;
+    /*Node* tabuleiro_right;
     Node* tabuleiro_left;
     Node* tabuleiro_up;
-    Node* tabuleiro_down;
+    Node* tabuleiro_down;*/
 
     Node(int nivel, vector<int> tabuleiro_inicial, int path) //CONSTRUTOR
     {
@@ -278,18 +301,21 @@ public:
             break;
         }
 
-        if (verificaVitoria(this->tabuleiro_inicial))
-        {
-            limiar = this->nivel;
-        }
+        if (this->tabuleiro_inicial[0] != -1) { //Nao houve alteracoes no tabuleiro, logo nao e preciso continuar
 
-        if (this->nivel < limiar)
-        {
-            //CRIAR OS FILHOS
-            Node filho_right(this->nivel + 1, this->tabuleiro_inicial, DIR);
-            Node filho_left(this->nivel + 1, this->tabuleiro_inicial, ESQ);
-            Node filho_up(this->nivel + 1, this->tabuleiro_inicial, UP);
-            Node filho_down(this->nivel + 1, this->tabuleiro_inicial, DWN);
+            if (verificaVitoria(this->tabuleiro_inicial))
+            {
+                limiar = this->nivel;
+            }
+
+            if (this->nivel < limiar)
+            {
+                //CRIAR OS FILHOS
+                Node filho_right(this->nivel + 1, this->tabuleiro_inicial, DIR);
+                Node filho_left(this->nivel + 1, this->tabuleiro_inicial, ESQ);
+                Node filho_up(this->nivel + 1, this->tabuleiro_inicial, UP);
+                Node filho_down(this->nivel + 1, this->tabuleiro_inicial, DWN);
+            }
         }
     }
 };
