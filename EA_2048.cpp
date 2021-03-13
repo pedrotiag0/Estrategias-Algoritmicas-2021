@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 #define ESQ 1
 #define DIR 2
@@ -267,6 +268,36 @@ bool verificaVitoria(vector<int> tabuleiro) {
     return vitoria;
 }
 
+bool verificaPossibilidade(vector<int> tabuleiro) { // verifica se o tabuleiro tem, de facto, solucao
+    /*if (tabuleiro.size() == 1)
+        return true;*/
+    sort(tabuleiro.begin(), tabuleiro.end()); // ordena tabuleiro
+    int i = 0;
+    int aux;
+    for (vector<int>::iterator it = tabuleiro.begin(); it != tabuleiro.end(); ++it) {
+        if ((it + 1) == tabuleiro.end())
+            return true;
+        if ( (*it != 0) && (*(it + 1) != 0) && ( *it != *(it + 1)) ) {
+            return false;
+        }
+        else if ( *it == *(it+1) && (*it != 0)) {
+            i = 2;
+            *(it + 1) = *it * 2;
+            *it = 0;
+            while ( (it + i) != tabuleiro.end() ) { // ordena com selection sort
+                if ( *(it + i - 1) <= *(it + i) ) {
+                    break;
+                }
+                aux = *(it + i - 1);
+                *(it + i - 1) = *(it + i);
+                *(it + i) = aux;
+                i++;
+            }
+        }
+    }
+    return true;
+}
+
 class Node {
 public:
     int path;
@@ -329,6 +360,10 @@ public:
 };
 
 string jogo_2048(int M, vector<int> vec) {
+
+    if (!verificaPossibilidade(vec)) {
+        return "no solution";
+    }
 
     // Creation of tree
     Node root(0, vec, 0);
