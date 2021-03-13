@@ -345,15 +345,16 @@ public:
             if (verificaVitoria(this->tabuleiro_inicial))
             {
                 limiar = this->nivel;
+                //imprimeTabuleiro(this->tabuleiro_inicial);
             }
 
-            if (this->nivel < limiar)
+            if (this->nivel < limiar - 1)
             {
                 //CRIAR OS FILHOS
-                Node filho_right(this->nivel + 1, this->tabuleiro_inicial, DIR);
-                Node filho_left(this->nivel + 1, this->tabuleiro_inicial, ESQ);
-                Node filho_up(this->nivel + 1, this->tabuleiro_inicial, UP);
                 Node filho_down(this->nivel + 1, this->tabuleiro_inicial, DWN);
+                Node filho_left(this->nivel + 1, this->tabuleiro_inicial, ESQ);
+                Node filho_right(this->nivel + 1, this->tabuleiro_inicial, DIR);
+                Node filho_up(this->nivel + 1, this->tabuleiro_inicial, UP);
             }
         }
     }
