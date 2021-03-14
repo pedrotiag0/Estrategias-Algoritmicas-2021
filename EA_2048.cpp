@@ -103,7 +103,7 @@ vector<int> swipeRight(vector<int> vec) { // Done
         }
     }
     if (!modificado) {
-        memo.emplace(vec, DIR);
+        //memo.emplace(vec, DIR);
         vec[0] = -1;
         return vec;
     }
@@ -160,7 +160,7 @@ vector<int> swipeLeft(vector<int> vec) { // Done
         }
     }
     if (!modificado) {
-        memo.emplace(vec, ESQ);
+        //memo.emplace(vec, ESQ);
         vec[0] = -1;
         return vec;
     }
@@ -217,7 +217,7 @@ vector<int> swipeUp(vector<int> vec) { // Done
         }
     }
     if (!modificado) {
-        memo.emplace(vec, UP);
+        //memo.emplace(vec, UP);
         vec[0] = -1;
         return vec;
     }
@@ -274,7 +274,7 @@ vector<int> swipeDown(vector<int> vec) { // Done
         }
     }
     if (!modificado) {
-        memo.emplace(vec, DWN);
+        //memo.emplace(vec, DWN);
         vec[0] = -1;
         return vec;
     }
@@ -298,9 +298,16 @@ bool verificaPossibilidade(vector<int> tabuleiro) { // verifica se o tabuleiro t
     sort(tabuleiro.begin(), tabuleiro.end()); // ordena tabuleiro
     int i = 0;
     int aux;
+    int count = 0;
     for (vector<int>::iterator it = tabuleiro.begin(); it != tabuleiro.end(); ++it) {
-        if ((it + 1) == tabuleiro.end())
+        if ((it + 1) == tabuleiro.end()) {
+            //cout << "Count: " << count << endl;
+            /*if (count > M) {
+                //cout << "count > M" << endl;
+                return false;
+            }*/
             return true;
+        }
         if ( (*it != 0) && (*(it + 1) != 0) && ( *it != *(it + 1)) ) {
             return false;
         }
@@ -308,6 +315,10 @@ bool verificaPossibilidade(vector<int> tabuleiro) { // verifica se o tabuleiro t
             i = 2;
             *(it + 1) = *it * 2;
             *it = 0;
+            count++;
+            /*if ( count > M) {
+                return false;
+            }*/
             while ( (it + i) != tabuleiro.end() ) { // ordena com selection sort
                 if ( *(it + i - 1) <= *(it + i) ) {
                     break;
@@ -330,7 +341,16 @@ public:
 
     Node(int nivel, vector<int> tabuleiro_inicial, int path) //CONSTRUTOR
     {
+
         this->nivel = nivel;
+
+        if (this->nivel >= limiar)
+        {
+            this->path = path;
+            return;
+        }
+
+        cout << "Nivel: " << nivel << " Path: " << path << endl;
 
         if (this->nivel == 0)
         {
@@ -341,12 +361,19 @@ public:
             this->path = path;
         }
 
-        
+        /*
         it = memo.find(this->tabuleiro_inicial);
         if ( it != memo.end() ) {
-            if (it->second == this->path)
+            if (it->second == this->path) {
+                //cout << "encontrei" << endl;
                 return;
+            }
         }
+        else {
+            //cout << "inseri" << endl;
+            memo.emplace(this->tabuleiro_inicial, this->path);
+        }
+        */
         
 
         switch (path)
@@ -368,26 +395,14 @@ public:
             break;
         }
 
-        /*
-        if ( (memo.find(this->tabuleiro_inicial)) != (memo.end()) ) {
-            return;
-        }
-        else {
-            memo.insert(this->tabuleiro_inicial);
-            //memo.emplace(this->tabuleiro_inicial);
-        }
-        */
-
         if (this->tabuleiro_inicial[0] != -1) { //Nao houve alteracoes no tabuleiro, logo nao e preciso continuar
 
             if (verificaVitoria(this->tabuleiro_inicial))
             {
                 limiar = this->nivel;
                 //imprimeTabuleiro(this->tabuleiro_inicial);
-            }
-
-            if (this->nivel < limiar - 1)
-            {
+                cout << "SOLUCAO NIVEL: " << this->nivel << endl;
+            } else if (this->nivel < limiar - 1) {
                 //CRIAR OS FILHOS
                 Node filho_down(this->nivel + 1, this->tabuleiro_inicial, DWN);
                 Node filho_left(this->nivel + 1, this->tabuleiro_inicial, ESQ);
@@ -432,6 +447,7 @@ int main()
         limiar = M + 1;
         cin.ignore();
         tabuleiro_2048.clear();
+        memo.clear();
         for (int j = 0; j < N*N; j++) {
             cin >> tabuleiro_elem;
             tabuleiro_2048.push_back(tabuleiro_elem);
