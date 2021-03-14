@@ -10,6 +10,8 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+//#include <unordered_set>
+#include <unordered_map>
 
 #define ESQ 1
 #define DIR 2
@@ -18,6 +20,24 @@
 
 using namespace std;
 int N, M, limiar;
+
+struct VectorHash {
+    size_t operator()(const std::vector<int>& v) const {
+        std::hash<int> hasher;
+        size_t seed = 0;
+        for (int i : v) {
+            seed ^= hasher(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+        return seed;
+    }
+};
+
+//unordered_set <vector<int>, VectorHash> memo;
+//unordered_set <vector<int>>::iterator it;
+
+//unordered_map <vector<int>, VectorHash> memo;
+unordered_map <vector<int>, int, VectorHash> memo; // Direcao, board
+unordered_map <vector<int>, int, VectorHash>::iterator it;
 
 void imprimeTabuleiro(vector<int> tabuleiro) {
     int paragrafo = 0;
@@ -83,6 +103,7 @@ vector<int> swipeRight(vector<int> vec) { // Done
         }
     }
     if (!modificado) {
+        memo.emplace(vec, DIR);
         vec[0] = -1;
         return vec;
     }
@@ -139,6 +160,7 @@ vector<int> swipeLeft(vector<int> vec) { // Done
         }
     }
     if (!modificado) {
+        memo.emplace(vec, ESQ);
         vec[0] = -1;
         return vec;
     }
@@ -195,6 +217,7 @@ vector<int> swipeUp(vector<int> vec) { // Done
         }
     }
     if (!modificado) {
+        memo.emplace(vec, UP);
         vec[0] = -1;
         return vec;
     }
@@ -251,6 +274,7 @@ vector<int> swipeDown(vector<int> vec) { // Done
         }
     }
     if (!modificado) {
+        memo.emplace(vec, DWN);
         vec[0] = -1;
         return vec;
     }
@@ -303,10 +327,6 @@ public:
     int path;
     int nivel;
     vector<int> tabuleiro_inicial;
-    /*Node* tabuleiro_right;
-    Node* tabuleiro_left;
-    Node* tabuleiro_up;
-    Node* tabuleiro_down;*/
 
     Node(int nivel, vector<int> tabuleiro_inicial, int path) //CONSTRUTOR
     {
@@ -320,6 +340,14 @@ public:
         {
             this->path = path;
         }
+
+        
+        it = memo.find(this->tabuleiro_inicial);
+        if ( it != memo.end() ) {
+            if (it->second == this->path)
+                return;
+        }
+        
 
         switch (path)
         {
@@ -339,6 +367,16 @@ public:
             this->tabuleiro_inicial = tabuleiro_inicial;
             break;
         }
+
+        /*
+        if ( (memo.find(this->tabuleiro_inicial)) != (memo.end()) ) {
+            return;
+        }
+        else {
+            memo.insert(this->tabuleiro_inicial);
+            //memo.emplace(this->tabuleiro_inicial);
+        }
+        */
 
         if (this->tabuleiro_inicial[0] != -1) { //Nao houve alteracoes no tabuleiro, logo nao e preciso continuar
 
