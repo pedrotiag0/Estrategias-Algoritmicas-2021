@@ -350,7 +350,7 @@ public:
             return;
         }
 
-        cout << "Nivel: " << nivel << " Path: " << path << endl;
+        //cout << "Nivel: " << nivel << " Path: " << path << endl;
 
         if (this->nivel == 0)
         {
@@ -401,7 +401,7 @@ public:
             {
                 limiar = this->nivel;
                 //imprimeTabuleiro(this->tabuleiro_inicial);
-                cout << "SOLUCAO NIVEL: " << this->nivel << endl;
+                //cout << "SOLUCAO NIVEL: " << this->nivel << endl;
             } else if (this->nivel < limiar - 1) {
                 //CRIAR OS FILHOS
                 Node filho_down(this->nivel + 1, this->tabuleiro_inicial, DWN);
