@@ -10,7 +10,6 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-//#include <unordered_set>
 #include <unordered_map>
 
 #define ESQ 1
@@ -55,7 +54,7 @@ void imprimeTabuleiro(vector<int> tabuleiro) {
 
 vector<int> swipeRight(vector<int> vec) { // Done
     vector<int>::iterator inicio_linha;
-    bool flag, modificado = false, ciclo3;
+    bool flag, modificado = false;
 
     for (int i = 0; i < N; i++)         //  Avança a linha do tabuleiro
     {
@@ -75,30 +74,28 @@ vector<int> swipeRight(vector<int> vec) { // Done
                 }
             }
         }
-        ciclo3 = false;
         for (vector<int>::iterator it = inicio_linha + N - 1; it > inicio_linha; it--) //it varia do fim da linha até ao index 1 (não chega ao 1º elemento da linha)
         {
             if ((*it == *(it - 1)) && (*it != 0))
             {
                 *it = *it * 2;          //  [0][0][2][2] -> [0][0][2][4]           [2][2][0][4] -> [2][4][0][4]
-                *(it - 1) = 0;          //  [0][0][2][4] -> [0][0][0][4]           [2][4][0][4] -> [0][4][0][4]
-                //it--;                   //  Pode ser ainda mais otimizado
-                modificado = true;
-                ciclo3 = true;
-            }
-        }
-        flag = true;
-        while (flag && ciclo3)
-        {
-            flag = false;
-            for (vector<int>::iterator it = inicio_linha + N - 1; it != inicio_linha; it--) // Vai ordenar a linha [4][0][0][4] -> [0][0][4][4]
-            {
-                if ((*it == 0) && (*(it - 1) != 0))
+                //*(it - 1) = 0;          //  [0][0][2][4] -> [0][0][0][4]           [2][4][0][4] -> [0][4][0][4]
+                
+                //ANDAR O RESTO DA LINHA UMA CASA PARA A DIREITA
+                for (vector<int>::iterator aux = it - 1; aux > inicio_linha; aux--)
                 {
-                    *it = *(it - 1);                                                //  [4][0][0][4] -> [4][4][0][4]
-                    *(it - 1) = 0;                                                  //  [4][4][0][4] -> [0][4][0][4]
-                    flag = true;                                                    //  Repete iterativamente até a linha ficar ordenada
+                    if (*aux != 0)
+                    {
+                        *aux = *(aux - 1);
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
+                *inicio_linha = 0;
+
+                modificado = true;
             }
         }
     }
@@ -112,7 +109,7 @@ vector<int> swipeRight(vector<int> vec) { // Done
 
 vector<int> swipeLeft(vector<int> vec) { // Done
     vector<int>::iterator fim_linha;
-    bool flag, modificado = false, ciclo3;
+    bool flag, modificado = false;
 
     for (int i = 0; i < N; i++)         //  Avança a linha do tabuleiro
     {
@@ -132,32 +129,31 @@ vector<int> swipeLeft(vector<int> vec) { // Done
                 }
             }
         }
-        ciclo3 = false;
         for (vector<int>::iterator it = fim_linha - (N - 1); it < fim_linha; it++) //it varia do inicio da linha até ao index N (não chega ao ultimo elemento da linha)
         {
             if ((*it == *(it + 1)) && (*it != 0))
             {
                 *it = *it * 2;          //  [2][2][0][0] -> [4][2][0][0]           [4][0][2][2] -> [4][0][4][2]
-                *(it + 1) = 0;          //  [4][2][0][0] -> [4][0][0][0]           [4][0][4][2] -> [4][0][4][0]
-                //it++;                   //  Pode ser ainda mais otimizado !WARNING!
+                //*(it + 1) = 0;          //  [4][2][0][0] -> [4][0][0][0]           [4][0][4][2] -> [4][0][4][0]
+                
+                for (vector<int>::iterator aux = it + 1; aux < fim_linha; aux++)
+                {
+                    if (*aux != 0)
+                    {
+                        *aux = *(aux + 1);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                *fim_linha = 0;
+
                 modificado = true;
-                ciclo3 = true;
             }
         }
         flag = true;
-        while (flag && ciclo3)
-        {
-            flag = false;
-            for (vector<int>::iterator it = fim_linha - (N - 1); it < fim_linha; it++) // Vai ordenar a linha [4][0][0][4] -> [4][4][0][0]
-            {
-                if ((*it == 0) && (*(it + 1) != 0))
-                {
-                    *it = *(it + 1);                                                //  [4][0][0][4] -> [4][0][4][4]
-                    *(it + 1) = 0;                                                  //  [4][0][4][4] -> [4][0][4][0]
-                    flag = true;                                                    //  Repete iterativamente até a linha ficar ordenada
-                }
-            }
-        }
+        
     }
     if (!modificado) {
         //memo.emplace(vec, ESQ);
@@ -169,7 +165,7 @@ vector<int> swipeLeft(vector<int> vec) { // Done
 
 vector<int> swipeUp(vector<int> vec) { // Done
     vector<int>::iterator inicio_coluna;
-    bool flag, modificado = false, ciclo3;
+    bool flag, modificado = false;
 
     for (int i = 0; i < N; i++)         //  Avança a coluna do tabuleiro
     {
@@ -189,30 +185,27 @@ vector<int> swipeUp(vector<int> vec) { // Done
                 }
             }
         }
-        ciclo3 = false;
         for (vector<int>::iterator it = inicio_coluna; it < inicio_coluna + (N * (N - 1)); it += N) //it varia do inicio da coluna até ao final da mesma (não chega ao ultimo elemento da coluna)
         {
             if ((*it == *(it + N)) && (*it != 0))
             {
                 *it = *it * 2;
-                *(it + N) = 0;
-                //it--;                   //  Pode ser ainda mais otimizado
-                modificado = true;
-                ciclo3 = true;
-            }
-        }
-        flag = true;
-        while (flag && ciclo3)
-        {
-            flag = false;
-            for (vector<int>::iterator it = inicio_coluna; it < inicio_coluna + (N * (N - 1)); it += N)
-            {
-                if ((*it == 0) && (*(it + N) != 0))
+                //*(it + N) = 0;
+
+                for (vector<int>::iterator aux = it + N; aux < inicio_coluna + (N * (N - 1)); aux += N)
                 {
-                    *it = *(it + N);
-                    *(it + N) = 0;
-                    flag = true;                                                    //  Repete iterativamente até a coluna ficar ordenada
+                    if (*aux != 0)
+                    {
+                        *aux = *(aux + N);
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
+                *(inicio_coluna + (N * (N - 1))) = 0;
+
+                modificado = true;
             }
         }
     }
@@ -226,7 +219,7 @@ vector<int> swipeUp(vector<int> vec) { // Done
 
 vector<int> swipeDown(vector<int> vec) { // Done
     vector<int>::iterator fim_coluna;
-    bool flag, modificado = false, ciclo3;
+    bool flag, modificado = false;
     for (int i = 0; i < N; i++)         //  Avança a coluna do tabuleiro
     {
 
@@ -246,30 +239,27 @@ vector<int> swipeDown(vector<int> vec) { // Done
                 }
             }
         }
-        ciclo3 = false;
         for (vector<int>::iterator it = fim_coluna; it > fim_coluna - (N * (N - 1)); it -= N) //it varia do final da coluna até ao inicio da mesma (não chega ao ultimo elemento da coluna)
         {
             if ((*it == *(it - N)) && (*it != 0))
             {
                 *it = *it * 2;
-                *(it - N) = 0;
-                //it--;                   //  Pode ser ainda mais otimizado
-                modificado = true;
-                ciclo3 = true;
-            }
-        }
-        flag = true;
-        while (flag && ciclo3)
-        {
-            flag = false;
-            for (vector<int>::iterator it = fim_coluna; it > fim_coluna - (N * (N - 1)); it -= N)
-            {
-                if ((*it == 0) && (*(it - N) != 0))
+                //*(it - N) = 0;
+                
+                for (vector<int>::iterator aux = it - N; aux > fim_coluna - (N * (N - 1)); aux -= N)
                 {
-                    *it = *(it - N);
-                    *(it - N) = 0;
-                    flag = true;                                                    //  Repete iterativamente até a coluna ficar ordenada
+                    if (*aux != 0)
+                    {
+                        *aux = *(aux - N);
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
+                *(fim_coluna - (N * (N - 1))) = 0;
+
+                modificado = true;
             }
         }
     }
@@ -308,10 +298,10 @@ bool verificaPossibilidade(vector<int> tabuleiro) { // verifica se o tabuleiro t
             }*/
             return true;
         }
-        if ( (*it != 0) && (*(it + 1) != 0) && ( *it != *(it + 1)) ) {
+        if ((*it != 0) && (*(it + 1) != 0) && (*it != *(it + 1))) {
             return false;
         }
-        else if ( *it == *(it+1) && (*it != 0)) {
+        else if (*it == *(it + 1) && (*it != 0)) {
             i = 2;
             *(it + 1) = *it * 2;
             *it = 0;
@@ -319,8 +309,8 @@ bool verificaPossibilidade(vector<int> tabuleiro) { // verifica se o tabuleiro t
             /*if ( count > M) {
                 return false;
             }*/
-            while ( (it + i) != tabuleiro.end() ) { // ordena com selection sort
-                if ( *(it + i - 1) <= *(it + i) ) {
+            while ((it + i) != tabuleiro.end()) { // ordena com selection sort
+                if (*(it + i - 1) <= *(it + i)) {
                     break;
                 }
                 aux = *(it + i - 1);
@@ -374,7 +364,7 @@ public:
             memo.emplace(this->tabuleiro_inicial, this->path);
         }
         */
-        
+
 
         switch (path)
         {
@@ -402,7 +392,8 @@ public:
                 limiar = this->nivel;
                 //imprimeTabuleiro(this->tabuleiro_inicial);
                 //cout << "SOLUCAO NIVEL: " << this->nivel << endl;
-            } else if (this->nivel < limiar - 1) {
+            }
+            else if (this->nivel < limiar - 1) {
                 //CRIAR OS FILHOS
                 Node filho_down(this->nivel + 1, this->tabuleiro_inicial, DWN);
                 Node filho_left(this->nivel + 1, this->tabuleiro_inicial, ESQ);
@@ -448,7 +439,7 @@ int main()
         cin.ignore();
         tabuleiro_2048.clear();
         memo.clear();
-        for (int j = 0; j < N*N; j++) {
+        for (int j = 0; j < N * N; j++) {
             cin >> tabuleiro_elem;
             tabuleiro_2048.push_back(tabuleiro_elem);
         }
@@ -457,10 +448,10 @@ int main()
 
         //imprimeTabuleiro(tabuleiro_2048, N);
         //tabuleiro_2048 = swipeRight(tabuleiro_2048);
-        //tabuleiro_2048 = swipeLeft(tabuleiro_2048, N);
-        //tabuleiro_2048 = swipeUp(tabuleiro_2048, N);
-        //tabuleiro_2048 = swipeDown(tabuleiro_2048, N);
-        //imprimeTabuleiro(tabuleiro_2048);
+        //tabuleiro_2048 = swipeLeft(tabuleiro_2048);
+        //tabuleiro_2048 = swipeUp(tabuleiro_2048);
+        //tabuleiro_2048 = swipeDown(tabuleiro_2048);
+        imprimeTabuleiro(tabuleiro_2048);
     }
 
     for (auto i : solution) {                        //Imprime output
