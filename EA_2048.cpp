@@ -18,7 +18,9 @@
 #define DWN 4
 
 using namespace std;
-int N, M, limiar;
+int N, M, limiar, best;
+
+int teste1 = 0, solucoes_encontradas = 0;
 
 struct VectorHash {
     size_t operator()(const std::vector<int>& v) const {
@@ -35,8 +37,8 @@ struct VectorHash {
 //unordered_set <vector<int>>::iterator it;
 
 //unordered_map <vector<int>, VectorHash> memo;
-unordered_map <vector<int>, int, VectorHash> memo; // Direcao, board
-unordered_map <vector<int>, int, VectorHash>::iterator it;
+unordered_map <vector<int>, vector<int>, VectorHash> memo; // Direcao, board
+unordered_map <vector<int>, vector<int>, VectorHash>::iterator it;
 
 void imprimeTabuleiro(vector<int> tabuleiro) {
     int paragrafo = 0;
@@ -80,7 +82,7 @@ vector<int> swipeRight(vector<int> vec) { // Done
             {
                 *it = *it * 2;          //  [0][0][2][2] -> [0][0][2][4]           [2][2][0][4] -> [2][4][0][4]
                 //*(it - 1) = 0;          //  [0][0][2][4] -> [0][0][0][4]           [2][4][0][4] -> [0][4][0][4]
-                
+
                 //ANDAR O RESTO DA LINHA UMA CASA PARA A DIREITA
                 for (vector<int>::iterator aux = it - 1; aux > inicio_linha; aux--)
                 {
@@ -135,7 +137,7 @@ vector<int> swipeLeft(vector<int> vec) { // Done
             {
                 *it = *it * 2;          //  [2][2][0][0] -> [4][2][0][0]           [4][0][2][2] -> [4][0][4][2]
                 //*(it + 1) = 0;          //  [4][2][0][0] -> [4][0][0][0]           [4][0][4][2] -> [4][0][4][0]
-                
+
                 for (vector<int>::iterator aux = it + 1; aux < fim_linha; aux++)
                 {
                     if (*aux != 0)
@@ -153,7 +155,7 @@ vector<int> swipeLeft(vector<int> vec) { // Done
             }
         }
         flag = true;
-        
+
     }
     if (!modificado) {
         //memo.emplace(vec, ESQ);
@@ -245,7 +247,7 @@ vector<int> swipeDown(vector<int> vec) { // Done
             {
                 *it = *it * 2;
                 //*(it - N) = 0;
-                
+
                 for (vector<int>::iterator aux = it - N; aux > fim_coluna - (N * (N - 1)); aux -= N)
                 {
                     if (*aux != 0)
@@ -269,6 +271,55 @@ vector<int> swipeDown(vector<int> vec) { // Done
         return vec;
     }
     return vec;
+}
+
+vector<int> swipeRightBestCaseScenario(vector<int> vec)
+{
+    int max = (N / (int)2) * N;
+    int count = 0;
+    vector<int>::iterator end = vec.end() - 1;
+    vector<int>::iterator begin = vec.begin();
+    for (vector<int>::iterator it = end; it > begin; it--)
+    {
+        if (count > max)
+        {
+            break;
+        }
+        if ((*it == *(it - 1)) && (*it != 0))
+        {
+            count++;
+
+            *it = *it * 2;
+
+            //ANDAR O RESTO DA LINHA UMA CASA PARA A DIREITA
+            for (vector<int>::iterator aux = it - 1; aux > begin; aux--)
+            {
+                if (*aux != 0)
+                {
+                    *aux = *(aux - 1);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            *begin = 0;
+        }
+    }
+    return vec;
+}
+
+int bestCaseScenario(vector<int> vec)
+{
+    sort(vec.begin(), vec.end());
+    int jogadas = 0;
+
+    while (*(vec.end() - 2) != 0)
+    {
+        vec = swipeRightBestCaseScenario(vec);
+        jogadas++;
+    }
+    return jogadas;
 }
 
 bool verificaVitoria(vector<int> tabuleiro) {
@@ -340,6 +391,17 @@ public:
             return;
         }
 
+        if (limiar == best)
+        {
+            return;
+        }
+
+        if ( nivel % 2 == 0) {
+            if (bestCaseScenario(tabuleiro_inicial) > (M - nivel)) {
+                return;
+            }
+        }
+
         //cout << "Nivel: " << nivel << " Path: " << path << endl;
 
         if (this->nivel == 0)
@@ -351,19 +413,31 @@ public:
             this->path = path;
         }
 
-        /*
+        teste1++;
+
+        
         it = memo.find(this->tabuleiro_inicial);
         if ( it != memo.end() ) {
-            if (it->second == this->path) {
-                //cout << "encontrei" << endl;
-                return;
+            if ( find(it->second.begin(), it->second.end(), this->path) != it->second.end()) {
+                //cout << "1" << endl;
+                //teste1++; 
+                return; // Encontrou uma combinacao que ja foi testada
+            }
+            else {
+                //cout << "2" << endl;
+                //teste1++;
+                it->second.push_back(this->path); // Esta combinacao ainda nao foi testada
             }
         }
         else {
-            //cout << "inseri" << endl;
-            memo.emplace(this->tabuleiro_inicial, this->path);
+            //cout << "3" << endl;
+            //teste1++;
+            vector <int> temp = { this->path };
+            memo.emplace(tabuleiro_inicial, temp);
+            //std::pair < vector<int>, vector<int> > aux(tabuleiro_inicial, temp);
+            //memo.insert(aux);
         }
-        */
+        
 
 
         switch (path)
@@ -390,6 +464,7 @@ public:
             if (verificaVitoria(this->tabuleiro_inicial))
             {
                 limiar = this->nivel;
+                solucoes_encontradas++;
                 //imprimeTabuleiro(this->tabuleiro_inicial);
                 //cout << "SOLUCAO NIVEL: " << this->nivel << endl;
             }
@@ -406,7 +481,14 @@ public:
 
 string jogo_2048(int M, vector<int> vec) {
 
+
     if (!verificaPossibilidade(vec)) {
+        return "no solution";
+    }
+
+    best = bestCaseScenario(vec);
+
+    if (best > M) {
         return "no solution";
     }
 
@@ -451,7 +533,11 @@ int main()
         //tabuleiro_2048 = swipeLeft(tabuleiro_2048);
         //tabuleiro_2048 = swipeUp(tabuleiro_2048);
         //tabuleiro_2048 = swipeDown(tabuleiro_2048);
-        imprimeTabuleiro(tabuleiro_2048);
+        //imprimeTabuleiro(tabuleiro_2048);
+        //cout << "Chamadas: " <<teste1 << endl;
+        //cout << "Solucoes encontradas: " << solucoes_encontradas << endl;
+        teste1 = 0;
+        solucoes_encontradas = 0;
     }
 
     for (auto i : solution) {                        //Imprime output
