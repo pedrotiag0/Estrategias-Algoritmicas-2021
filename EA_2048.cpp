@@ -391,16 +391,20 @@ public:
             return;
         }
 
+        /*
         if (limiar == best)
         {
             return;
         }
-
+        */
+        
+        /*
         if ( nivel % 2 == 0) {
-            if (bestCaseScenario(tabuleiro_inicial) > (M - nivel)) {
-                return;
+            if (bestCaseScenario(tabuleiro_inicial) > (M - nivel)) { // (1 > 1)
+                return; // b
             }
         }
+        */
 
         //cout << "Nivel: " << nivel << " Path: " << path << endl;
 
@@ -459,7 +463,12 @@ public:
             break;
         }
 
+
         if (this->tabuleiro_inicial[0] != -1) { //Nao houve alteracoes no tabuleiro, logo nao e preciso continuar
+            
+            if (bestCaseScenario(this->tabuleiro_inicial) > (M - nivel)) { // (3 > 3)
+                return; // b
+            }
 
             if (verificaVitoria(this->tabuleiro_inicial))
             {
@@ -488,15 +497,17 @@ string jogo_2048(int M, vector<int> vec) {
 
     best = bestCaseScenario(vec);
 
+    /*
     if (best > M) {
         return "no solution";
     }
+    */
 
     // Creation of tree
     Node root(0, vec, 0);
-
+    
     if (limiar > M) {
-        return "no solution";
+        return "no solution"; //
     }
     return to_string(limiar);
 }
