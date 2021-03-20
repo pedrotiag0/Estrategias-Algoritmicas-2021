@@ -20,26 +20,6 @@
 using namespace std;
 int N, M, limiar, best;
 
-int teste1 = 0, solucoes_encontradas = 0;
-
-struct VectorHash {
-    size_t operator()(const std::vector<int>& v) const {
-        std::hash<int> hasher;
-        size_t seed = 0;
-        for (int i : v) {
-            seed ^= hasher(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
-        return seed;
-    }
-};
-
-//unordered_set <vector<int>, VectorHash> memo;
-//unordered_set <vector<int>>::iterator it;
-
-//unordered_map <vector<int>, VectorHash> memo;
-unordered_map <vector<int>, vector<int>, VectorHash> memo; // Direcao, board
-unordered_map <vector<int>, vector<int>, VectorHash>::iterator it;
-
 void imprimeTabuleiro(vector<int> tabuleiro) {
     int paragrafo = 0;
     cout << "_______________________" << endl;
@@ -334,19 +314,12 @@ bool verificaVitoria(vector<int> tabuleiro) {
 }
 
 bool verificaPossibilidade(vector<int> tabuleiro) { // verifica se o tabuleiro tem, de facto, solucao
-    /*if (tabuleiro.size() == 1)
-        return true;*/
     sort(tabuleiro.begin(), tabuleiro.end()); // ordena tabuleiro
     int i = 0;
     int aux;
     int count = 0;
     for (vector<int>::iterator it = tabuleiro.begin(); it != tabuleiro.end(); ++it) {
         if ((it + 1) == tabuleiro.end()) {
-            //cout << "Count: " << count << endl;
-            /*if (count > M) {
-                //cout << "count > M" << endl;
-                return false;
-            }*/
             return true;
         }
         if ((*it != 0) && (*(it + 1) != 0) && (*it != *(it + 1))) {
@@ -357,9 +330,6 @@ bool verificaPossibilidade(vector<int> tabuleiro) { // verifica se o tabuleiro t
             *(it + 1) = *it * 2;
             *it = 0;
             count++;
-            /*if ( count > M) {
-                return false;
-            }*/
             while ((it + i) != tabuleiro.end()) { // ordena com selection sort
                 if (*(it + i - 1) <= *(it + i)) {
                     break;
@@ -391,23 +361,6 @@ public:
             return;
         }
 
-        /*
-        if (limiar == best)
-        {
-            return;
-        }
-        */
-        
-        /*
-        if ( nivel % 2 == 0) {
-            if (bestCaseScenario(tabuleiro_inicial) > (M - nivel)) { // (1 > 1)
-                return; // b
-            }
-        }
-        */
-
-        //cout << "Nivel: " << nivel << " Path: " << path << endl;
-
         if (this->nivel == 0)
         {
             this->path = 0;
@@ -416,33 +369,6 @@ public:
         {
             this->path = path;
         }
-
-        teste1++;
-
-        
-        it = memo.find(this->tabuleiro_inicial);
-        if ( it != memo.end() ) {
-            if ( find(it->second.begin(), it->second.end(), this->path) != it->second.end()) {
-                //cout << "1" << endl;
-                //teste1++; 
-                return; // Encontrou uma combinacao que ja foi testada
-            }
-            else {
-                //cout << "2" << endl;
-                //teste1++;
-                it->second.push_back(this->path); // Esta combinacao ainda nao foi testada
-            }
-        }
-        else {
-            //cout << "3" << endl;
-            //teste1++;
-            vector <int> temp = { this->path };
-            memo.emplace(tabuleiro_inicial, temp);
-            //std::pair < vector<int>, vector<int> > aux(tabuleiro_inicial, temp);
-            //memo.insert(aux);
-        }
-        
-
 
         switch (path)
         {
@@ -466,16 +392,13 @@ public:
 
         if (this->tabuleiro_inicial[0] != -1) { //Nao houve alteracoes no tabuleiro, logo nao e preciso continuar
             
-            if (bestCaseScenario(this->tabuleiro_inicial) > (M - nivel)) { // (3 > 3)
-                return; // b
+            if (bestCaseScenario(this->tabuleiro_inicial) > (M - nivel)) {
+                return;
             }
 
             if (verificaVitoria(this->tabuleiro_inicial))
             {
                 limiar = this->nivel;
-                solucoes_encontradas++;
-                //imprimeTabuleiro(this->tabuleiro_inicial);
-                //cout << "SOLUCAO NIVEL: " << this->nivel << endl;
             }
             else if (this->nivel < limiar - 1) {
                 //CRIAR OS FILHOS
@@ -497,17 +420,15 @@ string jogo_2048(int M, vector<int> vec) {
 
     best = bestCaseScenario(vec);
 
-    /*
     if (best > M) {
         return "no solution";
     }
-    */
-
+    
     // Creation of tree
     Node root(0, vec, 0);
     
     if (limiar > M) {
-        return "no solution"; //
+        return "no solution";
     }
     return to_string(limiar);
 }
@@ -531,28 +452,13 @@ int main()
         limiar = M + 1;
         cin.ignore();
         tabuleiro_2048.clear();
-        memo.clear();
         for (int j = 0; j < N * N; j++) {
             cin >> tabuleiro_elem;
             tabuleiro_2048.push_back(tabuleiro_elem);
         }
-
         solution.push_back(jogo_2048(M, tabuleiro_2048));
-
-        //imprimeTabuleiro(tabuleiro_2048, N);
-        //tabuleiro_2048 = swipeRight(tabuleiro_2048);
-        //tabuleiro_2048 = swipeLeft(tabuleiro_2048);
-        //tabuleiro_2048 = swipeUp(tabuleiro_2048);
-        //tabuleiro_2048 = swipeDown(tabuleiro_2048);
-        //imprimeTabuleiro(tabuleiro_2048);
-        //cout << "Chamadas: " <<teste1 << endl;
-        //cout << "Solucoes encontradas: " << solucoes_encontradas << endl;
-        teste1 = 0;
-        solucoes_encontradas = 0;
     }
-
     for (auto i : solution) {                        //Imprime output
         cout << i << endl;
     }
-
 }
