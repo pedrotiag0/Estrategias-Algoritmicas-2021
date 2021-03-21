@@ -10,7 +10,6 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include <unordered_map>
 
 #define ESQ 1
 #define DIR 2
@@ -20,7 +19,7 @@
 using namespace std;
 int N, M, limiar, best;
 
-void imprimeTabuleiro(vector<int> tabuleiro) {
+void imprimeTabuleiro(vector<int> tabuleiro) {      // Funcao utilizada para imprimir o tabuleiro
     int paragrafo = 0;
     cout << "_______________________" << endl;
     for (int i = 0; i < N * N; i++) {
@@ -34,7 +33,7 @@ void imprimeTabuleiro(vector<int> tabuleiro) {
     cout << endl << "_______________________" << endl;
 }
 
-vector<int> swipeRight(vector<int> vec) { // Done
+vector<int> swipeRight(vector<int> vec) { 
     vector<int>::iterator inicio_linha;
     bool flag, modificado = false;
 
@@ -89,7 +88,7 @@ vector<int> swipeRight(vector<int> vec) { // Done
     return vec;
 }
 
-vector<int> swipeLeft(vector<int> vec) { // Done
+vector<int> swipeLeft(vector<int> vec) { 
     vector<int>::iterator fim_linha;
     bool flag, modificado = false;
 
@@ -138,14 +137,13 @@ vector<int> swipeLeft(vector<int> vec) { // Done
 
     }
     if (!modificado) {
-        //memo.emplace(vec, ESQ);
         vec[0] = -1;
         return vec;
     }
     return vec;
 }
 
-vector<int> swipeUp(vector<int> vec) { // Done
+vector<int> swipeUp(vector<int> vec) { 
     vector<int>::iterator inicio_coluna;
     bool flag, modificado = false;
 
@@ -192,14 +190,13 @@ vector<int> swipeUp(vector<int> vec) { // Done
         }
     }
     if (!modificado) {
-        //memo.emplace(vec, UP);
         vec[0] = -1;
         return vec;
     }
     return vec;
 }
 
-vector<int> swipeDown(vector<int> vec) { // Done
+vector<int> swipeDown(vector<int> vec) {
     vector<int>::iterator fim_coluna;
     bool flag, modificado = false;
     for (int i = 0; i < N; i++)         //  Avança a coluna do tabuleiro
@@ -226,7 +223,6 @@ vector<int> swipeDown(vector<int> vec) { // Done
             if ((*it == *(it - N)) && (*it != 0))
             {
                 *it = *it * 2;
-                //*(it - N) = 0;
 
                 for (vector<int>::iterator aux = it - N; aux > fim_coluna - (N * (N - 1)); aux -= N)
                 {
@@ -246,7 +242,6 @@ vector<int> swipeDown(vector<int> vec) { // Done
         }
     }
     if (!modificado) {
-        //memo.emplace(vec, DWN);
         vec[0] = -1;
         return vec;
     }
@@ -289,7 +284,7 @@ vector<int> swipeRightBestCaseScenario(vector<int> vec)
     return vec;
 }
 
-int bestCaseScenario(vector<int> vec)
+int bestCaseScenario(vector<int> vec) // Encontra um nr minimo de swipes que devem ser feitos para resolver o problema
 {
     sort(vec.begin(), vec.end());
     int jogadas = 0;
@@ -302,7 +297,7 @@ int bestCaseScenario(vector<int> vec)
     return jogadas;
 }
 
-bool verificaVitoria(vector<int> tabuleiro) {
+bool verificaVitoria(vector<int> tabuleiro) { // Verifica se o tabuleiro ja foi resolvido
     bool vitoria = false;
     for (int i = 0; i < N * N; i++) {
         if ((tabuleiro[i] != 0) && (vitoria == false))
@@ -411,7 +406,7 @@ public:
     }
 };
 
-string jogo_2048(int M, vector<int> vec) {
+string jogo_2048(vector<int> vec) {
 
 
     if (!verificaPossibilidade(vec)) {
@@ -456,7 +451,7 @@ int main()
             cin >> tabuleiro_elem;
             tabuleiro_2048.push_back(tabuleiro_elem);
         }
-        solution.push_back(jogo_2048(M, tabuleiro_2048));
+        solution.push_back(jogo_2048(tabuleiro_2048));
     }
     for (auto i : solution) {                        //Imprime output
         cout << i << endl;
