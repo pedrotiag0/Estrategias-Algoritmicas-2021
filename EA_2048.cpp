@@ -386,16 +386,17 @@ public:
 
 
         if (this->tabuleiro_inicial[0] != -1) { //Nao houve alteracoes no tabuleiro, logo nao e preciso continuar
-            
-            if (bestCaseScenario(this->tabuleiro_inicial) > (M - nivel)) {
-                return;
-            }
 
             if (verificaVitoria(this->tabuleiro_inicial))
             {
                 limiar = this->nivel;
             }
             else if (this->nivel < limiar - 1) {
+
+                if (bestCaseScenario(this->tabuleiro_inicial) > (M - nivel)) {
+                    return;
+                }
+
                 //CRIAR OS FILHOS
                 Node filho_down(this->nivel + 1, this->tabuleiro_inicial, DWN);
                 Node filho_left(this->nivel + 1, this->tabuleiro_inicial, ESQ);
@@ -425,6 +426,7 @@ string jogo_2048(vector<int> vec) {
     if (limiar > M) {
         return "no solution";
     }
+
     return to_string(limiar);
 }
 
