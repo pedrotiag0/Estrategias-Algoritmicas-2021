@@ -18,6 +18,14 @@ using namespace std;
 int n, h, H;
 int possibilidades;
 
+void printComb(int* sala) {
+    cout << "Solucao " << possibilidades << ": [ ";
+    for (int i = 0; i < n; i++) {
+        cout << sala[i] << " ";
+    }
+    cout << "]" << endl;
+}
+
 int mod_abs(int a, int mod) {
     return ((a % mod) + mod) % mod;
 }
@@ -30,75 +38,32 @@ int mod_sub(int a, int b, int mod) {
     return mod_add(a, -b, mod);
 }
 
-int mustDescend(int* sala, int pos) {
-    int restantes = n - (pos + 1);
-    int alturaAtual = sala[pos];
-    int melhorCaso = alturaAtual - restantes * (h - 1);
-    if (melhorCaso == 0) // Deve descer de imediato
-        return 1;
-    else if (melhorCaso < 0) // Pode continuar ou entao descer
-        return 0;
-    else
-        return -1; // Caso invalido que nao deve ser contabilizado
-}
-
-void buildArc(int* sala, int pos, bool subir) {
-    // Verificacao Inicial
-    if (pos == 0) {
-        sala[pos] = 0;
-        buildArc(sala, pos + 1, true);
-    }
-
-    if (pos >= n)
-        return;
-
-    int alturaAtual;
-
-    if (subir) {
-        // Ascendente
-        alturaAtual = sala[pos - 1];
-        for (int i = 1; i < h; i++) {
-            if (alturaAtual + i + h <= H) {
-                sala[pos] = alturaAtual + i;
-                switch (mustDescend(sala, pos)) {
-                case 2:
-                    buildArc(sala, pos + 1, true);
-                    break;
-                case 1:
-                    buildArc(sala, pos + 1, false);
-                    break;
-                case 0:
-                    buildArc(sala, pos + 1, true);
-                    buildArc(sala, pos + 1, false);
-                    break;
-                case -1:
-                    return;
-                }
-            }
-        }
-    }
-    else {
-        // Descendente
-        alturaAtual = sala[pos - 1];
-        for (int i = 1; i < h; i++) {
-            if (alturaAtual - i == 0) {
-                possibilidades++;
-            }
-            else if(alturaAtual - i > 0){
-                buildArc(sala, pos + 1, false);
-            }
-        }
-    }
-}
-
 void arc(int* sala) {
     /*for (int i = 0; i < n; i++) {
         buildArc(sala, i, true);
     }*/
-    buildArc(sala, 0, true);
+    //buildArc(sala, 0, true);
+    int aux;
+    for (int i = 2; i < n; i++) {           // Todos os casos possiveis
+        aux = (int)(pow((h-1), (i-1)));
+        //cout << "AUX1: " << aux << endl;
+        //possibilidades = mod_add(possibilidades, aux, MODULO);
+        possibilidades += aux;
+    }
+
+    // Falta distinguir quando fazemos elevado a h-1, h-2, h-3... Ou seja, validar a altura restante que conseguimos subir.
+    
+    for (int i = 2; i < n; i++) {           // Subtrai a todos os casos possiveis os casos onde ultrapassa a altura maxima
+        for (int j = 1; j < h ; j++) {      // Contar para todos os tamanhos do degrau que ultrapassam H
+            aux = (int)(pow(j, (i - 1)));   // Por alterar
+            //cout << "AUX2: " << aux << endl;
+            //possibilidades = mod_sub(possibilidades, aux, MODULO);
+            possibilidades -= aux;
+        }
+    }
 }
 
-int main(){
+int main() {
     // Ler de maneira eficiente
     ios_base::sync_with_stdio(0);
     cin.tie(0);
@@ -121,7 +86,7 @@ int main(){
             possibilidades = 0;
             arc(sala);
             solution.push_back(mod_abs(possibilidades, MODULO));
-        } 
+        }
         else
             solution.push_back(0);
     }
