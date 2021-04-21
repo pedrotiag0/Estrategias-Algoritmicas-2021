@@ -38,6 +38,24 @@ int mod_sub(int a, int b, int mod) {
     return mod_add(a, -b, mod);
 }
 
+void printM(bool** M) {
+    for (int y = H-1; y >= 0; y--) {
+        for (int x = 0; x < n; x++) {
+            cout << M[x][y] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+void falseM(bool** M) {
+    for (int x = 0; x < n; x++) {
+        for (int y = 0; y < H; y++) {
+            M[x][y] = false;
+        }
+    }
+}
+
 bool possivelDescer(int altura, int pos) { // Retorna true se for possivel descer e tocar no solo
     int restantes = n - (pos + 1);
     int melhorCaso = altura - (restantes * (h - 1));
@@ -52,7 +70,7 @@ bool possivelDescer(int altura, int pos) { // Retorna true se for possivel desce
     */
 }
 
-int* calculaLimiares() {
+int* calculaLimiares(int Hmax) {
     // Funcao que calcula os valores min e maximo que podemos subir e tocar (ou nao) no teto, contando que é sempre possível retornar ao solo.
     int limiares[2];
 
@@ -60,7 +78,7 @@ int* calculaLimiares() {
     int alturaAtual = h;
     int i;
     for (i = 1; i < n; i++) {
-        if ( (alturaAtual + (h - 1) < H) && (possivelDescer(alturaAtual + (h - 1), i))) {
+        if ( (alturaAtual + (h - 1) < Hmax) && (possivelDescer(alturaAtual + (h - 1), i))) {
             alturaAtual += h - 1;
         }
         else {
@@ -70,7 +88,7 @@ int* calculaLimiares() {
     }
 
     for (int j = 1; j < h; j++) { // Verifica se consegue "tocar" no teto
-        if ((alturaAtual + j == H) && (possivelDescer(alturaAtual + j, i + 1))) {
+        if ((alturaAtual + j == Hmax) && (possivelDescer(alturaAtual + j, i + 1))) {
             i++;
             break;
         }
@@ -82,7 +100,7 @@ int* calculaLimiares() {
     int auxLimiar = n - limiares[0];
     alturaAtual = h;
     for (i = 1; i < n; i++) {
-        if ((alturaAtual + 1 <= H) && (possivelDescer(alturaAtual + 1, i))) {
+        if ((alturaAtual + 1 <= Hmax) && (possivelDescer(alturaAtual + 1, i))) {
             alturaAtual++;
         }
         else {
@@ -99,11 +117,8 @@ int* calculaLimiares() {
     return limiares;
 }
 
-int calculaPossibilidades(int i, int j) {
-    // i--> Largura atual | j --> Altura target atual
+int calculaPossibilidades(int x, int y) {
     int auxPossibilidades = 0;
-
-    // ...
 
     return auxPossibilidades;
 }
@@ -143,6 +158,30 @@ void arc(int* sala) {
 
 }
 
+void arcV2() {
+    int* limiares;
+    bool** M = new bool* [n];
+    for (int i = 0; i < n; ++i) {
+        M[i] = new bool[H];
+    }
+    falseM(M);
+    for (int i = h + 1; i <= H; i++) { // Marca a altura dos retangulos chave
+        limiares = calculaLimiares(i);
+        for (int j = limiares[0]; j <= limiares[1]; j++) {
+            M[j][i-1] = true;
+        }
+    }
+    printM(M);
+    for (int x = 0; x < n; x++) {
+        for (int y = 0; y < H; y++) {
+            if (M[x][y]) { // Coordenadas de um retangulo chave
+                calculaPossibilidades(x, y);
+            }
+        }
+    }
+
+}
+
 int main() {
     // Ler de maneira eficiente
     ios_base::sync_with_stdio(0);
@@ -164,8 +203,8 @@ int main() {
                 sala[j] = -1;
             }
             possibilidades = 0;
-            //arc(sala);
-            calculaLimiares();
+            arcV2();
+            //calculaLimiares(H);
             solution.push_back(mod_abs(possibilidades, MODULO));
         }
         else
