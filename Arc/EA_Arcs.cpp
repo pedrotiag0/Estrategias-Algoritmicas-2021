@@ -17,6 +17,7 @@ using namespace std;
 // n -> Comprimento da sala | h -> Altura dos blocos | H -> Altura da sala
 int n, h, H;
 int possibilidades;
+int** cache;
 
 void printComb(int* sala) {
     cout << "Solucao " << possibilidades << ": [ ";
@@ -56,18 +57,30 @@ void falseM(bool** M) {
     }
 }
 
+void printCache() {
+    for (int y = H - 1; y >= 0; y--) {
+        for (int x = 0; x < n; x++) {
+            cout << cache[x][y] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+void zeroCache() {
+    for (int x = 0; x < n; x++) {
+        for (int y = 0; y < H; y++) {
+            cache[x][y] = false;
+        }
+    }
+}
+
 bool possivelDescer(int altura, int pos) { // Retorna true se for possivel descer e tocar no solo
-    int restantes = n - (pos + 1);
-    int melhorCaso = altura - (restantes * (h - 1));
-    return melhorCaso <= h;
-    /*
-    if (melhorCaso == 0) // Deve descer de imediato
-        return 1;
-    else if (melhorCaso < 0) // Pode continuar ou entao descer
-        return 0;
-    else
-        return -1; // Caso invalido que nao deve ser contabilizado
-    */
+    int restantesdir = n - (pos + 1);
+    int melhorCasodir = altura - (restantesdir * (h - 1));
+    int restantesesq = pos;
+    int melhorCasoesq = altura - (restantesesq * (h - 1));
+    return (melhorCasodir <= h && melhorCasoesq <= h);
 }
 
 int* calculaLimiares(int Hmax) {
@@ -111,55 +124,51 @@ int* calculaLimiares(int Hmax) {
 
     limiares[1] = min(auxLimiar, i);
 
-    cout << "Limiar Inferior: " << limiares[0] << endl;
-    cout << "Limiar Superior: " << limiares[1] << endl;
+    //cout << "Limiar Inferior: " << limiares[0] << endl;
+    //cout << "Limiar Superior: " << limiares[1] << endl;
 
     return limiares;
 }
 
-int calculaPossibilidades(int x, int y) {
-    int auxPossibilidades = 0;
+int calculaDegraus(int x, int y) {
 
-    return auxPossibilidades;
+    if (y == h-1 && x == 0) {
+        return 1;
+    }
+
+    if (x == 0 && y != h-1) {
+        return 0;
+    }
+
+    if (cache[x][y]) {
+        return cache[x][y];
+    }
+
+    for (int i = 1; i < h; i++) {
+        cache[x][y] = calculaDegraus(x - 1, y - i);
+        return cache[x][y];
+    }
+
 }
 
-void arc(int* sala) {
-    /*for (int i = 0; i < n; i++) {
-        buildArc(sala, i, true);
-    }*/
-    //buildArc(sala, 0, true);
-    int auxPossibilidades, alturaAtual, difAltura;
-    
-    for (int i = 3; i <= n; i++) {
-        for (int j = h; j <= H; j++) {
-            auxPossibilidades = calculaPossibilidades(i, j);
-            possibilidades = mod_add(possibilidades, auxPossibilidades, MODULO);
-        }
+void rootPossibilidades(int x, int y) {
+    int esqPossibilidades = 0;
+    for (int i = 1; i < h; i++ ) {
+        esqPossibilidades += calculaDegraus(x - 1, y - i);
     }
 
-    // [Casos Possiveis - Casos Desfavoraveis]
-    /*for (int i = 2; i < n; i++) {                   // Todos os casos possiveis
-        aux = (int)(pow((h-1), (i-1)));
-        //cout << "AUX1: " << aux << endl;
-        //possibilidades = mod_add(possibilidades, aux, MODULO);
-        possibilidades += aux;
+    int dirPossibilidades = 0;
+    for (int i = 1; i < h; i++) {
+        dirPossibilidades += calculaDegraus(n - x - 2, y - i);
     }
 
-    // Falta distinguir quando fazemos elevado a h-1, h-2, h-3... Ou seja, validar a altura restante que conseguimos subir.
-    
-    for (int i = 2; i < n; i++) {                   // Subtrai a todos os casos possiveis os casos onde ultrapassa a altura maxima
-        for (int j = 1; j < h ; j++) {              // Contar para todos os tamanhos do degrau que ultrapassam H
-            aux = (int)(pow(j, (i - 1)));           // Por alterar
-            //cout << "AUX2: " << aux << endl;
-            //possibilidades = mod_sub(possibilidades, aux, MODULO);
-            possibilidades -= aux;
-        }
-    }*/
+    possibilidades = mod_add(possibilidades, esqPossibilidades * dirPossibilidades, MODULO);
 
 }
 
 void arcV2() {
     int* limiares;
+    // Cria M
     bool** M = new bool* [n];
     for (int i = 0; i < n; ++i) {
         M[i] = new bool[H];
@@ -168,18 +177,25 @@ void arcV2() {
     for (int i = h + 1; i <= H; i++) { // Marca a altura dos retangulos chave
         limiares = calculaLimiares(i);
         for (int j = limiares[0]; j <= limiares[1]; j++) {
-            M[j][i-1] = true;
+            if (possivelDescer(i, j)) {
+                M[j][i - 1] = true;
+            } 
         }
     }
     printM(M);
     for (int x = 0; x < n; x++) {
         for (int y = 0; y < H; y++) {
             if (M[x][y]) { // Coordenadas de um retangulo chave
-                calculaPossibilidades(x, y);
+                rootPossibilidades(x, y);
             }
         }
     }
-
+    // Destroi M
+    for (int i = 0; i < n; ++i)
+    {
+        delete[] M[i];
+    }
+    delete[] M;
 }
 
 int main() {
@@ -203,13 +219,27 @@ int main() {
                 sala[j] = -1;
             }
             possibilidades = 0;
+            // Cria M
+            cache = new int* [n];
+            for (int i = 0; i < n; ++i) {
+                cache[i] = new int[H];
+            }
+            zeroCache();
+            //printCache();
             arcV2();
+
             //calculaLimiares(H);
             solution.push_back(mod_abs(possibilidades, MODULO));
         }
         else
             solution.push_back(0);
     }
+
+    for (int i = 0; i < n; ++i)
+    {
+        delete[] cache[i];
+    }
+    delete[] cache;
 
     for (auto i : solution) {                        //Imprime output
         cout << i << endl;
