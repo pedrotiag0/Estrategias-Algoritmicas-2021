@@ -18,6 +18,7 @@ using namespace std;
 int n, h, H;
 int possibilidades;
 int** cache;
+int** cacheDir;
 
 void printComb(int* sala) {
     cout << "Solucao " << possibilidades << ": [ ";
@@ -71,6 +72,7 @@ void zeroCache() {
     for (int x = 0; x < n; x++) {
         for (int y = 0; y < H; y++) {
             cache[x][y] = 0;
+            cacheDir[x][y] = 0;
         }
     }
 }
@@ -80,12 +82,12 @@ bool possivelDescer(int altura, int pos) { // Retorna true se for possivel desce
     int melhorCasodir = altura - (restantesdir * (h - 1));
     int restantesesq = pos;
     int melhorCasoesq = altura - (restantesesq * (h - 1));
-    return (melhorCasodir <= h && melhorCasoesq <= h);
+    return (melhorCasodir <= h && (melhorCasoesq <= h));
 }
 
-int* calculaLimiares(int Hmax) {
+int calculaLimiares(int Hmax) {
     // Funcao que calcula os valores min e maximo que podemos subir e tocar (ou nao) no teto, contando que é sempre possível retornar ao solo.
-    int limiares[2];
+    //int limiares[2];
 
     // Limiar Inferior
     int alturaAtual = h;
@@ -107,10 +109,11 @@ int* calculaLimiares(int Hmax) {
         }
     }
 
-    limiares[0] = i;
+    return i;
+    //limiares[0] = i;
 
     // Limiar Superior
-    int auxLimiar = n - limiares[0];
+    /*int auxLimiar = n - limiares[0];
     alturaAtual = h;
     for (i = 1; i < n; i++) {
         if ((alturaAtual + 1 <= Hmax) && (possivelDescer(alturaAtual + 1, i))) {
@@ -122,12 +125,12 @@ int* calculaLimiares(int Hmax) {
         }
     }
 
-    limiares[1] = min(auxLimiar, i);
+    limiares[1] = min(auxLimiar, i);*/
 
     //cout << "Limiar Inferior: " << limiares[0] << endl;
     //cout << "Limiar Superior: " << limiares[1] << endl;
 
-    return limiares;
+    //return limiares;
 }
 
 int calculaDegraus(int x, int y) {
@@ -153,9 +156,32 @@ int calculaDegraus(int x, int y) {
     return cache[x][y];
 }
 
+int calculaDegrausDir(int x, int y) {
+    if (x < 0 || y < 0)
+        return 0;
+
+    if (y == h - 1) {
+        return 1;
+    }
+
+    if (y != h - 1 && x == 0) {
+        return 0;
+    }
+
+    if (cacheDir[x][y]) {
+        return cacheDir[x][y]; // memoization
+    }
+    int aux = 0;
+    for (int i = 1; i < h; i++) {
+        aux += calculaDegrausDir(x - 1, y - i);
+    }
+    cacheDir[x][y] = aux;
+    return cacheDir[x][y];
+}
+
 void rootPossibilidades(int x, int y) { // Corrigir parametros das funcoes recursivas
     
-    cout << "X: " << x << " | Y: " << y << endl;
+    //cout << "X: " << x << " | Y: " << y << endl;
     
     int esqPossibilidades = 0;
     for (int i = 1; i < h; i++ ) {
@@ -164,18 +190,19 @@ void rootPossibilidades(int x, int y) { // Corrigir parametros das funcoes recur
 
     int dirPossibilidades = 0;
     for (int i = 1; i < h; i++) {
-        dirPossibilidades += calculaDegraus(n - x - 2, y - i);
+        dirPossibilidades += calculaDegrausDir(n - x - 2, y - i);
     }
 
-    cout << "Esq: " << esqPossibilidades << endl;
-    cout << "Dir: " << dirPossibilidades << endl;
+    //cout << "Esq: " << esqPossibilidades << endl;
+    //cout << "Dir: " << dirPossibilidades << endl;
 
     possibilidades = mod_add(possibilidades, esqPossibilidades * dirPossibilidades, MODULO);
 
 }
 
 void arcV2() {
-    int* limiares;
+    //int* limiares;
+    int limiares;
     // Cria M
     bool** M = new bool* [n];
     for (int i = 0; i < n; ++i) {
@@ -184,13 +211,13 @@ void arcV2() {
     falseM(M);
     for (int i = h + 1; i <= H; i++) { // Marca a altura dos retangulos chave
         limiares = calculaLimiares(i);
-        for (int j = limiares[0]; j <= limiares[1]; j++) {
-            if (possivelDescer(i, j)) {
+        for (int j = limiares; j < n; j++) {
+            if (possivelDescer(i, j)) { // altura, pos
                 M[j][i - 1] = true;
             } 
         }
     }
-    printM(M);
+    //printM(M);
     for (int x = 0; x < n; x++) {
         for (int y = 0; y < H; y++) {
             if (M[x][y]) { // Coordenadas de um retangulo chave
@@ -229,8 +256,10 @@ int main() {
             possibilidades = 0;
             // Cria cache
             cache = new int* [n];
+            cacheDir = new int* [n];
             for (int i = 0; i < n; ++i) {
                 cache[i] = new int[H];
+                cacheDir[i] = new int[H];
             }
             zeroCache();
             //printCache();
@@ -246,8 +275,10 @@ int main() {
     for (int i = 0; i < n; ++i)
     {
         delete[] cache[i];
+        delete[] cacheDir[i];
     }
     delete[] cache;
+    delete[] cacheDir;
 
     for (auto i : solution) {                        //Imprime output
         cout << i << endl;
