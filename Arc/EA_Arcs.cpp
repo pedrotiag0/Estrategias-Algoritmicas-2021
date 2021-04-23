@@ -70,7 +70,7 @@ void printCache() {
 void zeroCache() {
     for (int x = 0; x < n; x++) {
         for (int y = 0; y < H; y++) {
-            cache[x][y] = false;
+            cache[x][y] = 0;
         }
     }
 }
@@ -131,6 +131,8 @@ int* calculaLimiares(int Hmax) {
 }
 
 int calculaDegraus(int x, int y) {
+    if (x < 0 || y < 0)
+        return 0;
 
     if (y == h-1 && x == 0) {
         return 1;
@@ -141,17 +143,20 @@ int calculaDegraus(int x, int y) {
     }
 
     if (cache[x][y]) {
-        return cache[x][y];
+        return cache[x][y]; // memoization
     }
-
+    int aux = 0;
     for (int i = 1; i < h; i++) {
-        cache[x][y] = calculaDegraus(x - 1, y - i);
-        return cache[x][y];
+        aux += calculaDegraus(x - 1, y - i);
     }
-
+    cache[x][y] = aux;
+    return cache[x][y];
 }
 
-void rootPossibilidades(int x, int y) {
+void rootPossibilidades(int x, int y) { // Corrigir parametros das funcoes recursivas
+    
+    cout << "X: " << x << " | Y: " << y << endl;
+    
     int esqPossibilidades = 0;
     for (int i = 1; i < h; i++ ) {
         esqPossibilidades += calculaDegraus(x - 1, y - i);
@@ -161,6 +166,9 @@ void rootPossibilidades(int x, int y) {
     for (int i = 1; i < h; i++) {
         dirPossibilidades += calculaDegraus(n - x - 2, y - i);
     }
+
+    cout << "Esq: " << esqPossibilidades << endl;
+    cout << "Dir: " << dirPossibilidades << endl;
 
     possibilidades = mod_add(possibilidades, esqPossibilidades * dirPossibilidades, MODULO);
 
@@ -219,7 +227,7 @@ int main() {
                 sala[j] = -1;
             }
             possibilidades = 0;
-            // Cria M
+            // Cria cache
             cache = new int* [n];
             for (int i = 0; i < n; ++i) {
                 cache[i] = new int[H];
