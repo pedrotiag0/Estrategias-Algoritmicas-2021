@@ -85,6 +85,27 @@ bool possivelDescer(int altura, int pos) { // Retorna true se for possivel desce
     return (melhorCasodir <= h && (melhorCasoesq <= h));
 }
 
+bool possivelDescerV2(int altura, int pos) { // Retorna true se for possivel descer e tocar no solo
+    int restantesdir = n - (pos + 1);
+    int melhorCasodir = altura - (restantesdir * (h - 1));
+    //int restantesesq = pos;
+    bool possivelEsq = false;
+    for (int i = 0; i < pos; i++) {
+        for (int j = 1; j < h; j++) {
+            int alturaAtual = altura - (i * (h - 1));
+            if( (i == pos-1) && (alturaAtual - (h - j) == h)) {
+                possivelEsq = true;
+                break;
+            }
+        }
+        if (possivelEsq)
+            break;
+    }
+
+    //int melhorCasoesq = altura - (restantesesq * (h - 1));
+    return (melhorCasodir <= h && (possivelEsq));
+}
+
 int calculaLimiares(int Hmax) {
     // Funcao que calcula os valores min e maximo que podemos subir e tocar (ou nao) no teto, contando que é sempre possível retornar ao solo.
     //int limiares[2];
@@ -184,12 +205,9 @@ void rootPossibilidades(int x, int y) { // Corrigir parametros das funcoes recur
     //cout << "X: " << x << " | Y: " << y << endl;
     
     int esqPossibilidades = 0;
-    for (int i = 1; i < h; i++ ) {
-        esqPossibilidades += calculaDegraus(x - 1, y - i);
-    }
-
     int dirPossibilidades = 0;
     for (int i = 1; i < h; i++) {
+        esqPossibilidades += calculaDegraus(x - 1, y - i);
         dirPossibilidades += calculaDegrausDir(n - x - 2, y - i);
     }
 
@@ -204,21 +222,22 @@ void arcV2() {
     //int* limiares;
     int limiares;
     // Cria M
-    bool** M = new bool* [n];
+    /*bool** M = new bool* [n];
     for (int i = 0; i < n; ++i) {
         M[i] = new bool[H];
     }
-    falseM(M);
+    falseM(M);*/
     for (int i = h + 1; i <= H; i++) { // Marca a altura dos retangulos chave
         limiares = calculaLimiares(i);
-        for (int j = limiares; j < n; j++) {
+        for (int j = limiares; j < n - limiares; j++) {
             if (possivelDescer(i, j)) { // altura, pos
-                M[j][i - 1] = true;
+                //M[j][i - 1] = true;
+                rootPossibilidades(j, i - 1);
             } 
         }
     }
     //printM(M);
-    for (int x = 0; x < n; x++) {
+    /*for (int x = 0; x < n; x++) {
         for (int y = 0; y < H; y++) {
             if (M[x][y]) { // Coordenadas de um retangulo chave
                 rootPossibilidades(x, y);
@@ -230,7 +249,7 @@ void arcV2() {
     {
         delete[] M[i];
     }
-    delete[] M;
+    delete[] M;*/
 }
 
 int main() {
