@@ -19,6 +19,7 @@ int n, h, H;
 int possibilidades;
 int** cache;
 int** cacheDir;
+int countCache;
 
 void printComb(int* sala) {
     cout << "Solucao " << possibilidades << ": [ ";
@@ -88,22 +89,17 @@ bool possivelDescer(int altura, int pos) { // Retorna true se for possivel desce
 bool possivelDescerV2(int altura, int pos) { // Retorna true se for possivel descer e tocar no solo
     int restantesdir = n - (pos + 1);
     int melhorCasodir = altura - (restantesdir * (h - 1));
-    //int restantesesq = pos;
     bool possivelEsq = false;
-    for (int i = 0; i < pos; i++) {
-        for (int j = 1; j < h; j++) {
-            int alturaAtual = altura - (i * (h - 1));
-            if( (i == pos-1) && (alturaAtual - (h - j) == h)) {
-                possivelEsq = true;
-                break;
-            }
-        }
-        if (possivelEsq)
+    for (int j = pos; j <= ((h - 1) * (pos + 1)); j++) {       // Pode ter descido destas formas diferentes                      
+        int alturaAtual = altura - j;
+        if (alturaAtual == h) {
+            possivelEsq = true;
             break;
+        }
     }
 
     //int melhorCasoesq = altura - (restantesesq * (h - 1));
-    return (melhorCasodir <= h && (possivelEsq));
+    return ((melhorCasodir <= h) && (possivelEsq));
 }
 
 int calculaLimiares(int Hmax) {
@@ -167,6 +163,7 @@ int calculaDegraus(int x, int y) {
     }
 
     if (cache[x][y]) {
+        countCache++;
         return cache[x][y]; // memoization
     }
     int aux = 0;
@@ -190,6 +187,7 @@ int calculaDegrausDir(int x, int y) {
     }
 
     if (cacheDir[x][y]) {
+        countCache++;
         return cacheDir[x][y]; // memoization
     }
     int aux = 0;
@@ -198,6 +196,73 @@ int calculaDegrausDir(int x, int y) {
     }
     cacheDir[x][y] = aux;
     return cacheDir[x][y];
+}
+
+/*int calculaDegrausEsqBU(int x, int y) {
+    int aux = 0;
+    for (int i = 0; i < x; i++) {
+        break;
+    }
+    return aux;
+}*/
+
+int calculaDegrausDirBU(int x, int y) { // Nao funcional
+    int aux = 0;
+    int alturaAtual;
+    for (int i = x; i < n; i++) {                               // Percorre ate n
+        for (int j = (i - x) + 1; j <= ((h-1)*((i - x)+1)); j++) {       // Pode ter descido destas formas diferentes                      
+            alturaAtual = y - j;
+            if (alturaAtual == h) {
+                aux++;
+                break;
+            }
+            /*for (int k = 1; k < h; k++) {
+                if (alturaAtual - k == h) {                         // Verifica se toca no chao
+                    // Guarda na cache
+                    aux++;
+                }
+            }*/
+        }
+    }
+    return aux;
+}
+
+int calculaDegrausDirBUV2(int x, int y) {
+    int aux = 0;
+    int alturaAtual; 
+    int posRestantes = n - x - 1;;
+    int* alturasCache = new int [posRestantes];
+    for (int i = 0; i < posRestantes; i++) {
+        alturasCache[i] = -1;
+    }
+    for (int i = 0; i < posRestantes; i++) {                               // Percorre ate n
+        for (int j = h - 1; j > 0; j--) {
+            if (i > 0) {
+                if (alturasCache[i - 1] > 0) {
+                    alturaAtual = y - alturasCache[i - 1] - j;
+                }
+                else {
+                    delete[] alturasCache;
+                    return aux;
+                }
+            }
+            else{
+                alturaAtual = y - j;
+            }
+            if ((alturaAtual > h)) {
+                alturasCache[i] = j; // Guarda altura para proxima iteracao
+                aux += j;
+                break;
+            }
+            else if (alturaAtual == h) {
+                alturasCache[i] = j-1;
+                aux += 1;
+                break;
+            }
+        }
+    }
+    delete[] alturasCache;
+    return aux;
 }
 
 void rootPossibilidades(int x, int y) { // Corrigir parametros das funcoes recursivas
@@ -209,7 +274,12 @@ void rootPossibilidades(int x, int y) { // Corrigir parametros das funcoes recur
     for (int i = 1; i < h; i++) {
         esqPossibilidades += calculaDegraus(x - 1, y - i);
         dirPossibilidades += calculaDegrausDir(n - x - 2, y - i);
+        //esqPossibilidades += calculaDegrausEsqBU(x - 1, y - i);
+        //dirPossibilidades += calculaDegrausDirBU(x, y + 1);
+        //cout << "esqPossibilidades ["<< i <<"]: " << esqPossibilidades << endl;
+        //cout << "DirPossibilidades [" << i << "]: " << dirPossibilidades << endl;
     }
+    //dirPossibilidades = calculaDegrausDirBUV2(x, y+1);
 
     //cout << "Esq: " << esqPossibilidades << endl;
     //cout << "Dir: " << dirPossibilidades << endl;
@@ -230,7 +300,7 @@ void arcV2() {
     for (int i = h + 1; i <= H; i++) { // Marca a altura dos retangulos chave
         limiares = calculaLimiares(i);
         for (int j = limiares; j < n - limiares; j++) {
-            if (possivelDescer(i, j)) { // altura, pos
+            if (possivelDescerV2(i, j)) { // altura, pos
                 //M[j][i - 1] = true;
                 rootPossibilidades(j, i - 1);
             } 
@@ -243,9 +313,9 @@ void arcV2() {
                 rootPossibilidades(x, y);
             }
         }
-    }
+    }*/
     // Destroi M
-    for (int i = 0; i < n; ++i)
+    /*for (int i = 0; i < n; ++i)
     {
         delete[] M[i];
     }
@@ -273,6 +343,7 @@ int main() {
                 sala[j] = -1;
             }
             possibilidades = 0;
+            countCache = 0;
             // Cria cache
             cache = new int* [n];
             cacheDir = new int* [n];
@@ -283,7 +354,7 @@ int main() {
             zeroCache();
             //printCache();
             arcV2();
-
+            //cout << "Cache acedida " << countCache << " vezes." << endl;
             //calculaLimiares(H);
             solution.push_back(mod_abs(possibilidades, MODULO));
         }
