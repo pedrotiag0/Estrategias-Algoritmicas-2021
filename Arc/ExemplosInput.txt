@@ -39,12 +39,24 @@ Output
 _________________________
 Input (Example 4)
 1
-5 5 10
+4 3 7
 Output
-54
+4
 _________________________
 Input (Example 5)
 1
 35 4 50
-Output ( [dantes era 18] 10 segundos) TopDown --> (XX segundos) BottomUp
+Output ( [dantes era 18, 10] insta segundos...)
 522923996
+_________________________
+Input (Example 6)
+1
+400 20 9232
+Output (4.5 sec com cache dupla vs 45~ sec com cache singular)
+153638626
+_________________________
+Input (Example 7)
+1
+200 20 9232
+Output (~1 sec com cache dupla vs 8~ sec com cache singular vs +4min com hash table)
+983161931
