@@ -52,11 +52,19 @@ _________________________
 Input (Example 6)
 1
 400 20 9232
-Output (4.5 sec com cache dupla vs 45~ sec com cache singular)
+Output (4.5 sec com cache dupla vs 68~ sec com cache singular)
 153638626
 _________________________
 Input (Example 7)
 1
 200 20 9232
-Output (~1 sec com cache dupla vs 8~ sec com cache singular vs +4min com hash table)
+Output (~1 sec com cache dupla vs 8~ sec com cache singular vs +4min com hash table singular)
 983161931
+_________________________
+Input (Example 8)
+2
+17 29 5899
+70 16 276
+Output (>0.4 sec com cache dupla vs >1 sec com cache singular vs ??min com hash table singular)
+162344589
+70718620
