@@ -8,16 +8,31 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_map>
+#include <string>
 
 using namespace std;
 
 #define MODULO 1000000007
+
+struct VectorHash {
+    size_t operator()(const std::vector<int>& v) const {
+        std::hash<int> hasher;
+        size_t seed = 0;
+        for (int i : v) {
+            seed ^= hasher(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+        return seed;
+    }
+};
 
 // Variaveis Globais
 // n -> Comprimento da sala | h -> Altura dos blocos | H -> Altura da sala
 int n, h, H;
 int possibilidades;
 int** cache;
+unordered_map <string, int> cacheHT; // Chave é [x, y]
+unordered_map <string, int>::iterator it;
 int** cacheDir;
 int countCache;
 
@@ -113,7 +128,7 @@ bool possivelDescerEsq(int altura, int pos) {
 }
 
 int calculaLimiares(int Hmax) {
-    // Funcao que calcula os valores min e maximo que podemos subir e tocar (ou nao) no teto, contando que é sempre possível retornar ao solo do lado esquerdo.
+    // Funcao que calcula os valores min e maximo que podemos subir e tocar (ou nao) no teto, contando que é sempre possível retornar ao solo.
     //int limiares[2];
 
     // Limiar Inferior
@@ -172,17 +187,34 @@ int calculaDegraus(int x, int y) {
         return 0;
     }
 
-    if (cache[x][y] != -1) {
+    /*if (cache[x][y] != -1) {
         countCache++;
         return cache[x][y]; // memoization
     }
+
+
     int aux = 0;
     for (int i = 1; i < h; i++) {
-        //aux += calculaDegraus(x - 1, y - i);
-        aux = mod_add(aux, calculaDegraus(x - 1, y - i), MODULO);
+        aux += calculaDegraus(x - 1, y - i);
     }
     cache[x][y] = aux;
-    return cache[x][y];
+    return cache[x][y];*/
+
+    //it = cacheHT.find({x, y});
+    string nome = to_string(x) + " " + to_string(y);
+    //cout << nome << endl;
+    it = cacheHT.find(nome);
+    if (it != cacheHT.end()) { //Existe
+        countCache++;
+        return it->second;
+    }
+    int aux = 0;
+    for (int i = 1; i < h; i++) {
+        aux += calculaDegraus(x - 1, y - i);
+    }
+    //int aux2[2] = {x, y};
+    cacheHT.emplace(nome, aux );
+    return aux;
 }
 
 int calculaDegrausDirV0(int x, int y) {
@@ -203,8 +235,7 @@ int calculaDegrausDirV0(int x, int y) {
     }
     int aux = 0;
     for (int i = 1; i < h; i++) {
-        //aux += calculaDegrausDirV0(x - 1, y - i);
-        aux = mod_add(aux, calculaDegrausDirV0(x - 1, y - i), MODULO);
+        aux += calculaDegrausDirV0(x - 1, y - i);
     }
     cacheDir[x][y] = aux;
     return cacheDir[x][y];
@@ -294,17 +325,9 @@ void rootPossibilidades(int x, int y) { // Corrigir parametros das funcoes recur
     int esqPossibilidades = 0;
     int dirPossibilidades = 0;
     for (int i = 1; i < h; i++) {
-        /*
         esqPossibilidades += calculaDegraus(x - 1, y - i);
-        //dirPossibilidades += calculaDegrausDir(x + 1, y - i);           // SingleCache
-        dirPossibilidades += calculaDegrausDirV0(n - x - 2, y - i);     // DualCache
-        */
-
-        
-        esqPossibilidades = mod_add(esqPossibilidades, calculaDegraus(x - 1, y - i), MODULO);
-        //dirPossibilidades = mod_add(dirPossibilidades, calculaDegrausDir(x + 1, y - i), MODULO);         // SingleCache
-        dirPossibilidades = mod_add(dirPossibilidades, calculaDegrausDirV0(n - x - 2, y - i), MODULO);     // DualCache
-        
+        dirPossibilidades += calculaDegrausDir(x + 1, y - i);
+        //dirPossibilidades += calculaDegrausDirV0(n - x - 2, y - i);
 
         //esqPossibilidades += calculaDegrausEsqBU(x - 1, y - i);
         //dirPossibilidades += calculaDegrausDirBU(x, y + 1);
@@ -315,13 +338,9 @@ void rootPossibilidades(int x, int y) { // Corrigir parametros das funcoes recur
 
     //cout << "Esq: " << esqPossibilidades << endl;
     //cout << "Dir: " << dirPossibilidades << endl;
-    cache[x][y] = esqPossibilidades;
+    //cache[x][y] = esqPossibilidades;
 
-    long long e = esqPossibilidades;
-    long long d = dirPossibilidades;
-    int res = int((e * d) % MODULO);
-
-    possibilidades = mod_add(possibilidades, res, MODULO);
+    possibilidades = mod_add(possibilidades, esqPossibilidades * dirPossibilidades, MODULO);
 
 }
 
@@ -375,20 +394,21 @@ int main() {
     for (int i = 0; i < total; i++) {               // Le e processa cada caso de teste
         cin >> n >> h >> H;
         if ((n <= 500) && (h <= 500) && (H <= 60000) && (n > 2) && (h < H)) {
-            /*int* sala = new int[n];
+            int* sala = new int[n];
             for (int j = 0; j < n; j++) {
                 sala[j] = -1;
-            }*/
+            }
             possibilidades = 0;
             countCache = 0;
             // Cria cache
-            cache = new int* [n];
+            /*cache = new int* [n];
             cacheDir = new int* [n];
             for (int i = 0; i < n; ++i) {
                 cache[i] = new int[H];
                 cacheDir[i] = new int[H];
             }
-            zeroCache();
+            zeroCache();*/
+            cacheHT.clear();
             //printCache();
             arcV2();
             //cout << "Cache acedida " << countCache << " vezes." << endl;
@@ -399,13 +419,13 @@ int main() {
             solution.push_back(0);
     }
 
-    for (int i = 0; i < n; ++i)
+    /*for (int i = 0; i < n; ++i)
     {
         delete[] cache[i];
         delete[] cacheDir[i];
     }
     delete[] cache;
-    delete[] cacheDir;
+    delete[] cacheDir;*/
 
     for (auto i : solution) {                        //Imprime output
         cout << i << endl;

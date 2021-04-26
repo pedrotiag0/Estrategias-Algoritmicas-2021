@@ -68,3 +68,9 @@ Input (Example 8)
 Output (>0.4 sec com cache dupla vs >1 sec com cache singular vs ??min com hash table singular)
 162344589
 70718620
+_________________________
+Input (Example 9)
+1
+32 3 100
+Output ( [dantes era 18, 10] insta segundos...)
+431655757
