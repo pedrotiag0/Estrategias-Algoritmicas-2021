@@ -69,11 +69,21 @@ void printCache() {
     cout << endl;
 }
 
+void printCacheDir() {
+    for (int y = H - 1; y >= 0; y--) {
+        for (int x = 0; x < n; x++) {
+            cout << cacheDir[x][y] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
 void zeroCache() {
     for (int x = 0; x < n; x++) {
         for (int y = 0; y < H; y++) {
-            cache[x][y] = -1;
-            cacheDir[x][y] = -1;
+            cache[x][y] = 0;
+            cacheDir[x][y] = 0;
         }
     }
 }
@@ -102,19 +112,9 @@ bool possivelDescerV2(int altura, int pos) { // Retorna true se for possivel des
     return ((melhorCasodir <= h) && (possivelEsq));
 }
 
-bool possivelDescerEsq(int altura, int pos) {
-    for (int j = pos; j <= ((h - 1) * (pos)); j++) {       // Pode ter descido destas formas diferentes                      
-        int alturaAtual = altura - j;
-        if (alturaAtual == h) {
-            return true;
-        }
-    }
-    return false;
-}
-
 int calculaLimiares(int Hmax) {
-    // Funcao que calcula os valores min que podemos subir e tocar (ou nao) no teto, contando que Ã© sempre possÃ­vel retornar ao solo do lado esquerdo.
-    // Limiar Inferior
+    // Funcao que calcula os valores min e maximo que podemos subir e tocar (ou nao) no teto, contando que é sempre possível retornar ao solo.
+
     int alturaAtual = h;
     int i;
     for (i = 1; i < n; i++) {
@@ -155,34 +155,10 @@ int calculaDegraus(int x, int y) {
     }
     int aux = 0;
     for (int i = 1; i < h; i++) {
-        aux = mod_add(aux, calculaDegraus(x - 1, y - i), MODULO);
+        aux += calculaDegraus(x - 1, y - i);
     }
     cache[x][y] = aux;
     return cache[x][y];
-}
-
-int calculaDegrausDirV0(int x, int y) {
-    if (x < 0 || y < 0)
-        return 0;
-
-    if (y == h - 1) {
-        return 1;
-    }
-
-    if (y != h - 1 && x == 0) {
-        return 0;
-    }
-
-    if (cacheDir[x][y] != -1) {
-        countCache++;
-        return cacheDir[x][y]; // memoization
-    }
-    int aux = 0;
-    for (int i = 1; i < h; i++) {
-        aux = mod_add(aux, calculaDegrausDirV0(x - 1, y - i), MODULO);
-    }
-    cacheDir[x][y] = aux;
-    return cacheDir[x][y];
 }
 
 int calculaDegrausDir(int x, int y) {
@@ -194,14 +170,6 @@ int calculaDegrausDir(int x, int y) {
     }
     return combinacoes;
 }
-
-/*int calculaDegrausEsqBU(int x, int y) {
-    int aux = 0;
-    for (int i = 0; i < x; i++) {
-        break;
-    }
-    return aux;
-}*/
 
 int calculaDegrausDirBU(int x, int y) { // Nao funcional
     int aux = 0;
@@ -269,55 +237,80 @@ void rootPossibilidades(int x, int y) { // Corrigir parametros das funcoes recur
     int esqPossibilidades = 0;
     int dirPossibilidades = 0;
     for (int i = 1; i < h; i++) {
-        esqPossibilidades = mod_add(esqPossibilidades, calculaDegraus(x - 1, y - i), MODULO);
-        //dirPossibilidades = mod_add(dirPossibilidades, calculaDegrausDir(x + 1, y - i), MODULO);         // SingleCache
-        dirPossibilidades = mod_add(dirPossibilidades, calculaDegrausDirV0(n - x - 2, y - i), MODULO);     // DualCache
-        
-
-        //esqPossibilidades += calculaDegrausEsqBU(x - 1, y - i);
-        //dirPossibilidades += calculaDegrausDirBU(x, y + 1);
-
-        //cout << "esqPossibilidades ["<< i <<"]: " << esqPossibilidades << endl;
-        //cout << "DirPossibilidades [" << i << "]: " << dirPossibilidades << endl;
+        esqPossibilidades += calculaDegraus(x - 1, y - i);
+        dirPossibilidades += calculaDegrausDir(x + 1, y - i);
     }
-    //dirPossibilidades = calculaDegrausDirBUV2(x, y+1);
 
     //cout << "Esq: " << esqPossibilidades << endl;
     //cout << "Dir: " << dirPossibilidades << endl;
     cache[x][y] = esqPossibilidades;
 
-    long long e = esqPossibilidades;
-    long long d = dirPossibilidades;
-    int res = int((e * d) % MODULO);
-
-    possibilidades = mod_add(possibilidades, res, MODULO);
+    possibilidades = mod_add(possibilidades, esqPossibilidades * dirPossibilidades, MODULO);
 
 }
 
 void arcV2() {
     int limiares;
-    // Cria M
-    /*bool** M = new bool* [n];
-    for (int i = 0; i < n; ++i) {
-        M[i] = new bool[H];
-    }*/
-    //falseM(M);
+
     for (int i = h + 1; i <= H; i++) { // Marca a altura dos retangulos chave
         limiares = calculaLimiares(i);
         for (int j = limiares; j < n - limiares; j++) {
             if (possivelDescerV2(i, j)) { // altura, pos
-                //M[j][i - 1] = true;
                 rootPossibilidades(j, i - 1);
             }
         }
     }
-    //printM(M);
-    // Destroi M
-    /*for (int i = 0; i < n; ++i)
+}
+
+void arcV3esq() {
+    //prepara a matriz de subida com o nº de combinacoes possiveis para subir até determinada coordenada
+    for (int i = n - 1; i > 1; i--)
     {
-        delete[] M[i];
+        cacheDir[i][h - 1] = 1;
     }
-    delete[] M;*/
+    cache[0][h - 1] = 1;
+
+    for (int i = 1; i < n - 1; i++)
+    {
+        for (int j = h; j < H; j++) //Avanca ao longo da matriz
+        {
+            if (j > ((i + 1) * (h - 1)))
+                break;
+
+
+            for (int altura = 1; altura < h; altura++)
+            {
+                if (j >= (h - 2) + i)
+                    cache[i][j] = mod_add(cache[i][j], cache[i - 1][j - altura], MODULO);
+
+                cacheDir[n - (i + 1)][j] = mod_add(cacheDir[n - (i + 1)][j], cacheDir[n - i][j - altura], MODULO);
+            }
+        }
+
+    }
+
+    /*
+    cout << "CacheEsq:" << endl;
+    printCache();
+    cout << "CacheDir:" << endl;
+    printCacheDir();
+    */
+
+    for (int i = h + 1; i <= H; i++) // Marca a altura dos retangulos chave
+    { 
+        int limiar = calculaLimiares(i);
+        for (int j = limiar; j < n - limiar; j++) 
+        {
+            if (possivelDescerV2(i, j)) // altura, pos
+            {
+                long long e = cache[j][i - 1];
+                long long d = cacheDir[j][i - 1];
+                int res = int((e * d) % MODULO);
+
+                possibilidades = mod_add(possibilidades, res, MODULO);
+            }
+        }
+    }
 }
 
 int main() {
@@ -346,8 +339,14 @@ int main() {
                 cacheDir[i] = new int[H];
             }
             zeroCache();
-            arcV2();
+            //printCache();
+            //arcV2();
             //cout << "Cache acedida " << countCache << " vezes." << endl;
+            //calculaLimiares(H);
+
+            arcV3esq();
+            //arcV3dir();
+
             solution.push_back(mod_abs(possibilidades, MODULO));
         }
         else
