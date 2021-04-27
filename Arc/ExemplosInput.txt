@@ -47,13 +47,13 @@ Input (Example 5)
 1
 35 4 50
 Output ( [dantes era 18, 10] insta segundos...)
-522923996
+63885014
 _________________________
 Input (Example 6)
 1
 400 20 9232
 Output (4.5 sec com cache dupla vs 68~ sec com cache singular)
-153638626
+178442066
 _________________________
 Input (Example 7)
 1
