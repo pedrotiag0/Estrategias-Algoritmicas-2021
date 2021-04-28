@@ -269,39 +269,41 @@ void arcV3esq() {
         cacheDir[i][h - 1] = 1;
     }
     cache[0][h - 1] = 1;
-
     for (int i = 1; i < n - 1; i++)
     {
+        int aux;
         for (int j = h; j < H; j++) //Avanca ao longo da matriz
         {
             if (j > ((i + 1) * (h - 1)))
                 break;
-
-
+            //if (!(j >= (h - 2) + i)) { break; }
             for (int altura = 1; altura < h; altura++)
             {
-                if (j >= (h - 2) + i)
+                //if (!cacheDir[n - i][j - altura] && !cache[i - 1][j - altura])
+                //    break;
+                
+
                     cache[i][j] = mod_add(cache[i][j], cache[i - 1][j - altura], MODULO);
 
                 cacheDir[n - (i + 1)][j] = mod_add(cacheDir[n - (i + 1)][j], cacheDir[n - i][j - altura], MODULO);
             }
-        }
 
+        }
     }
 
-    /*
-    cout << "CacheEsq:" << endl;
+    /*cout << "CacheEsq:" << endl;
     printCache();
     cout << "CacheDir:" << endl;
-    printCacheDir();
-    */
+    printCacheDir();*/
+    
 
-    for (int i = h + 1; i <= H; i++) // Marca a altura dos retangulos chave
-    { 
+    for (int i = h + 1; i <= H; i++)
+    {
         int limiar = calculaLimiares(i);
-        for (int j = limiar; j < n - limiar; j++) 
+        for (int j = limiar; j < n - limiar; j++)
         {
-            if (possivelDescerV2(i, j)) // altura, pos
+            //if (possivelDescerV2(i, j)) // altura, pos
+            if(cache[j][i-1] && cacheDir[j][i-1])
             {
                 long long e = cache[j][i - 1];
                 long long d = cacheDir[j][i - 1];
