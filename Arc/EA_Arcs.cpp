@@ -263,39 +263,39 @@ void arcV2() {
 }
 
 void arcV3esq() {
-    //prepara a matriz de subida com o nº de combinacoes possiveis para subir até determinada coordenada
+
+    //prepara a matriz de descida (direita) com o nº de combinacoes possiveis para subir até determinada coordenada
     for (int i = n - 1; i > 1; i--)
     {
         cacheDir[i][h - 1] = 1;
     }
+
+    //prepara a matriz de subida (esquerda) com o nº de combinacoes possiveis para subir até determinada coordenada
     cache[0][h - 1] = 1;
+
+
     for (int i = 1; i < n - 1; i++)
     {
-        int aux;
         for (int j = h; j < H; j++) //Avanca ao longo da matriz
         {
             if (j > ((i + 1) * (h - 1)))
                 break;
-            //if (!(j >= (h - 2) + i)) { break; }
+            //if (!(j >= (h - 2) + i) && (cacheDir[n - (i + 1)][j] != 0 && cacheDir[n - (i + 1)][j] == cacheDir[n - (i)][j])) { 
+                //cout << "Dei break!2" << endl; break; 
+            //}
             for (int altura = 1; altura < h; altura++)
             {
-                //if (!cacheDir[n - i][j - altura] && !cache[i - 1][j - altura])
-                //    break;
-                
-
-                    cache[i][j] = mod_add(cache[i][j], cache[i - 1][j - altura], MODULO);
-
+                cache[i][j] = mod_add(cache[i][j], cache[i - 1][j - altura], MODULO);
                 cacheDir[n - (i + 1)][j] = mod_add(cacheDir[n - (i + 1)][j], cacheDir[n - i][j - altura], MODULO);
             }
 
         }
     }
 
-    /*cout << "CacheEsq:" << endl;
+    cout << "CacheEsq:" << endl;
     printCache();
     cout << "CacheDir:" << endl;
-    printCacheDir();*/
-    
+    printCacheDir();
 
     for (int i = h + 1; i <= H; i++)
     {
@@ -303,14 +303,14 @@ void arcV3esq() {
         for (int j = limiar; j < n - limiar; j++)
         {
             //if (possivelDescerV2(i, j)) // altura, pos
-            if(cache[j][i-1] && cacheDir[j][i-1])
-            {
+            //if(cache[j][i-1] && cacheDir[j][i-1])
+            //{
                 long long e = cache[j][i - 1];
                 long long d = cacheDir[j][i - 1];
                 int res = int((e * d) % MODULO);
 
                 possibilidades = mod_add(possibilidades, res, MODULO);
-            }
+            //}
         }
     }
 }
