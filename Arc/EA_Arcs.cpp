@@ -17,17 +17,8 @@ using namespace std;
 // n -> Comprimento da sala | h -> Altura dos blocos | H -> Altura da sala
 int n, h, H;
 int possibilidades;
-int** cache;
-int** cacheDir;
-int countCache;
-
-void printComb(int* sala) {
-    cout << "Solucao " << possibilidades << ": [ ";
-    for (int i = 0; i < n; i++) {
-        cout << sala[i] << " ";
-    }
-    cout << "]" << endl;
-}
+int** cacheSubir;
+int** cacheDescer;
 
 int mod_abs(int a, int mod) {
     return ((a % mod) + mod) % mod;
@@ -41,38 +32,22 @@ int mod_sub(int a, int b, int mod) {
     return mod_add(a, -b, mod);
 }
 
-void printM(bool** M) {
+void printCacheSubir() {
+    cout << "CacheSubir:" << endl;
     for (int y = H - 1; y >= 0; y--) {
         for (int x = 0; x < n; x++) {
-            cout << M[x][y] << " ";
+            cout << cacheSubir[x][y] << "\t";
         }
         cout << endl;
     }
     cout << endl;
 }
 
-void falseM(bool** M) {
-    for (int x = 0; x < n; x++) {
-        for (int y = 0; y < H; y++) {
-            M[x][y] = false;
-        }
-    }
-}
-
-void printCache() {
+void printCacheDescer() {
+    cout << "CacheDescer:" << endl;
     for (int y = H - 1; y >= 0; y--) {
         for (int x = 0; x < n; x++) {
-            cout << cache[x][y] << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
-}
-
-void printCacheDir() {
-    for (int y = H - 1; y >= 0; y--) {
-        for (int x = 0; x < n; x++) {
-            cout << cacheDir[x][y] << " ";
+            cout << cacheDescer[x][y] << "\t";
         }
         cout << endl;
     }
@@ -82,10 +57,19 @@ void printCacheDir() {
 void zeroCache() {
     for (int x = 0; x < n; x++) {
         for (int y = 0; y < H; y++) {
-            cache[x][y] = 0;
-            cacheDir[x][y] = 0;
+            cacheSubir[x][y] = 0;
+            cacheDescer[x][y] = 0;
+            /*if (y < h) {
+                cacheDir[x][y] = 1;
+            }*/
         }
     }
+    for (int i = n - 1; i > 1; i--)
+    {
+        cacheDescer[i][h - 1] = 1;
+    }
+    // Prepara a matriz de subida (esquerda) com o nº de combinacoes possiveis para subir até determinada coordenada
+    cacheSubir[0][h - 1] = 1;
 }
 
 bool possivelDescer(int altura, int pos) { // Retorna true se for possivel descer e tocar no solo
@@ -94,22 +78,6 @@ bool possivelDescer(int altura, int pos) { // Retorna true se for possivel desce
     int restantesesq = pos;
     int melhorCasoesq = altura - (restantesesq * (h - 1));
     return (melhorCasodir <= h && (melhorCasoesq <= h));
-}
-
-bool possivelDescerV2(int altura, int pos) { // Retorna true se for possivel descer e tocar no solo
-    int restantesdir = n - (pos + 1);
-    int melhorCasodir = altura - (restantesdir * (h - 1));
-    bool possivelEsq = false;
-    for (int j = pos; j <= ((h - 1) * (pos)); j++) {       // Pode ter descido destas formas diferentes                      
-        int alturaAtual = altura - j;
-        if (alturaAtual == h) {
-            possivelEsq = true;
-            break;
-        }
-    }
-
-    //int melhorCasoesq = altura - (restantesesq * (h - 1));
-    return ((melhorCasodir <= h) && (possivelEsq));
 }
 
 int calculaLimiares(int Hmax) {
@@ -137,141 +105,7 @@ int calculaLimiares(int Hmax) {
     return i;
 }
 
-int calculaDegraus(int x, int y) {
-    if (x < 0 || y < 0)
-        return 0;
-
-    if (y == h - 1 && x == 0) {
-        return 1;
-    }
-
-    if (x == 0 && y != h - 1) {
-        return 0;
-    }
-
-    if (cache[x][y] != -1) {
-        countCache++;
-        return cache[x][y]; // memoization
-    }
-    int aux = 0;
-    for (int i = 1; i < h; i++) {
-        aux += calculaDegraus(x - 1, y - i);
-    }
-    cache[x][y] = aux;
-    return cache[x][y];
-}
-
-int calculaDegrausDir(int x, int y) {
-    x = n - x - 1;
-    int combinacoes = 0;
-    for (int i = x; i >= 0; i--)
-    {
-        combinacoes += calculaDegraus(i, y);
-    }
-    return combinacoes;
-}
-
-int calculaDegrausDirBU(int x, int y) { // Nao funcional
-    int aux = 0;
-    int alturaAtual;
-    for (int i = x; i < n; i++) {                               // Percorre ate n
-        for (int j = (i - x) + 1; j <= ((h - 1) * ((i - x) + 1)); j++) {       // Pode ter descido destas formas diferentes                      
-            alturaAtual = y - j;
-            if (alturaAtual == h) {
-                aux++;
-                break;
-            }
-            /*for (int k = 1; k < h; k++) {
-                if (alturaAtual - k == h) {                         // Verifica se toca no chao
-                    // Guarda na cache
-                    aux++;
-                }
-            }*/
-        }
-    }
-    return aux;
-}
-
-int calculaDegrausDirBUV2(int x, int y) {
-    int aux = 0;
-    int alturaAtual;
-    int posRestantes = n - x - 1;;
-    int* alturasCache = new int[posRestantes];
-    for (int i = 0; i < posRestantes; i++) {
-        alturasCache[i] = -1;
-    }
-    for (int i = 0; i < posRestantes; i++) {                               // Percorre ate n
-        for (int j = h - 1; j > 0; j--) {
-            if (i > 0) {
-                if (alturasCache[i - 1] > 0) {
-                    alturaAtual = y - alturasCache[i - 1] - j;
-                }
-                else {
-                    delete[] alturasCache;
-                    return aux;
-                }
-            }
-            else {
-                alturaAtual = y - j;
-            }
-            if ((alturaAtual > h)) {
-                alturasCache[i] = j; // Guarda altura para proxima iteracao
-                aux += j;
-                break;
-            }
-            else if (alturaAtual == h) {
-                alturasCache[i] = j - 1;
-                aux += 1;
-                break;
-            }
-        }
-    }
-    delete[] alturasCache;
-    return aux;
-}
-
-void rootPossibilidades(int x, int y) { // Corrigir parametros das funcoes recursivas
-
-    //cout << "X: " << x << " | Y: " << y << endl;
-
-    int esqPossibilidades = 0;
-    int dirPossibilidades = 0;
-    for (int i = 1; i < h; i++) {
-        esqPossibilidades += calculaDegraus(x - 1, y - i);
-        dirPossibilidades += calculaDegrausDir(x + 1, y - i);
-    }
-
-    //cout << "Esq: " << esqPossibilidades << endl;
-    //cout << "Dir: " << dirPossibilidades << endl;
-    cache[x][y] = esqPossibilidades;
-
-    possibilidades = mod_add(possibilidades, esqPossibilidades * dirPossibilidades, MODULO);
-
-}
-
-void arcV2() {
-    int limiares;
-
-    for (int i = h + 1; i <= H; i++) { // Marca a altura dos retangulos chave
-        limiares = calculaLimiares(i);
-        for (int j = limiares; j < n - limiares; j++) {
-            if (possivelDescerV2(i, j)) { // altura, pos
-                rootPossibilidades(j, i - 1);
-            }
-        }
-    }
-}
-
 void arcV3esq() {
-
-    //prepara a matriz de descida (direita) com o nº de combinacoes possiveis para subir até determinada coordenada
-    for (int i = n - 1; i > 1; i--)
-    {
-        cacheDir[i][h - 1] = 1;
-    }
-
-    //prepara a matriz de subida (esquerda) com o nº de combinacoes possiveis para subir até determinada coordenada
-    cache[0][h - 1] = 1;
 
 
     for (int i = 1; i < n - 1; i++)
@@ -280,37 +114,32 @@ void arcV3esq() {
         {
             if (j > ((i + 1) * (h - 1)))
                 break;
-            //if (!(j >= (h - 2) + i) && (cacheDir[n - (i + 1)][j] != 0 && cacheDir[n - (i + 1)][j] == cacheDir[n - (i)][j])) { 
-                //cout << "Dei break!2" << endl; break; 
-            //}
-            for (int altura = 1; altura < h; altura++)
-            {
-                cache[i][j] = mod_add(cache[i][j], cache[i - 1][j - altura], MODULO);
-                cacheDir[n - (i + 1)][j] = mod_add(cacheDir[n - (i + 1)][j], cacheDir[n - i][j - altura], MODULO);
-            }
+            // Esq
+            cacheSubir[i][j] = mod_sub(cacheSubir[i][j - 1], cacheSubir[i - 1][j - h], MODULO);
+            cacheSubir[i][j] = mod_add(cacheSubir[i][j], cacheSubir[i - 1][j - 1], MODULO);
 
+            // Dir
+            int inv_i = n - (i + 1);
+            if(j - 1 != h - 1)
+                cacheDescer[inv_i][j] = mod_sub(cacheDescer[inv_i][j - 1], cacheDescer[inv_i + 1][j - h], MODULO);
+            cacheDescer[inv_i][j] = mod_add(cacheDescer[inv_i][j], cacheDescer[inv_i + 1][j - 1], MODULO);
         }
     }
 
-    cout << "CacheEsq:" << endl;
-    printCache();
-    cout << "CacheDir:" << endl;
-    printCacheDir();
+    //printCacheDescer();
+    //printCacheSubir();
 
     for (int i = h + 1; i <= H; i++)
     {
         int limiar = calculaLimiares(i);
         for (int j = limiar; j < n - limiar; j++)
         {
-            //if (possivelDescerV2(i, j)) // altura, pos
-            //if(cache[j][i-1] && cacheDir[j][i-1])
-            //{
-                long long e = cache[j][i - 1];
-                long long d = cacheDir[j][i - 1];
-                int res = int((e * d) % MODULO);
-
-                possibilidades = mod_add(possibilidades, res, MODULO);
-            //}
+            if (j > ((i + 1) * (h - 1)))
+                break;
+            long long e = cacheSubir[j][i - 1];
+            long long d = cacheDescer[j][i - 1];
+            int res = int((e * d) % MODULO);
+            possibilidades = mod_add(possibilidades, res, MODULO);
         }
     }
 }
@@ -332,36 +161,30 @@ int main() {
         cin >> n >> h >> H;
         if ((n <= 500) && (h <= 500) && (H <= 60000) && (n > 2) && (h < H)) {
             possibilidades = 0;
-            countCache = 0;
-            // Cria cache
-            cache = new int* [n];
-            cacheDir = new int* [n];
+            
+            // Cria caches
+            cacheSubir = new int* [n];
+            cacheDescer = new int* [n];
             for (int i = 0; i < n; ++i) {
-                cache[i] = new int[H];
-                cacheDir[i] = new int[H];
+                cacheSubir[i] = new int[H];
+                cacheDescer[i] = new int[H];
             }
             zeroCache();
-            //printCache();
-            //arcV2();
-            //cout << "Cache acedida " << countCache << " vezes." << endl;
-            //calculaLimiares(H);
-
             arcV3esq();
-            //arcV3dir();
-
             solution.push_back(mod_abs(possibilidades, MODULO));
         }
         else
             solution.push_back(0);
     }
 
+    // Cleanup das caches
     for (int i = 0; i < n; ++i)
     {
-        delete[] cache[i];
-        delete[] cacheDir[i];
+        delete[] cacheSubir[i];
+        delete[] cacheDescer[i];
     }
-    delete[] cache;
-    delete[] cacheDir;
+    delete[] cacheSubir;
+    delete[] cacheDescer;
 
     for (auto i : solution) {                        //Imprime output
         cout << i << endl;
