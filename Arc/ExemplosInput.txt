@@ -47,7 +47,7 @@ Input (Example 4.5)
 1
 8 4 30
 Output
-54
+819
 _________________________
 Input (Example 5)
 1
