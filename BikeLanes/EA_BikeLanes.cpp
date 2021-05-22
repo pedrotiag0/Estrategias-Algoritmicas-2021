@@ -2,6 +2,7 @@
 #include <vector>
 #include <array>
 #include <stack>
+#include <algorithm>    // std::sort
 
 #define MAXPOI 1000
 
@@ -12,6 +13,10 @@ int n;                                              // Numero Pontos de Interess
 int m;                                              // Numero de conexões entre Pontos de Interesse
 int q;                                              // Numero de perguntas (1-4)
 vector<int> solution = {0, 0, 0, 0};                // Solucao
+array <vector<array<int, 2>>, MAXPOI> adj;          // Lista de adjacencia (ponto liga a pontos)
+array <vector<array<int, 2>>, MAXPOI> adjLanes;     // Lista de adjacencia (usada para ver o comprimento das lanes) (pontos que se ligam ao ponto)
+array <vector<array<int, 2>>, MAXPOI> adjBoth;      // Lista de adjacencia ambas direcoes
+vector< pair<int, pair<int, int>> > adjKruskal;     // Lista de adjacencia apenas os usados em Kruskal
 
 // Tarjan
 int t;
@@ -19,9 +24,9 @@ int* low;
 int* dfs;
 stack<int>* S = new stack<int>();
 
-array <vector<array<int, 2>>, MAXPOI> adj;          // Lista de adjacencia (ponto liga a pontos)
-array <vector<array<int, 2>>, MAXPOI> adjLanes;     // Lista de adjacencia (usada para ver o comprimento das lanes) (pontos que se ligam ao ponto)
-array <vector<array<int, 2>>, MAXPOI> adjBoth;      // Lista de adjacencia ambas direcoes
+// Kruskal
+int* setKruskal;
+int* rankKruskal;
 
 void cleanup() {
     for (int i = 0; i < n + 1; i++) {
@@ -30,6 +35,15 @@ void cleanup() {
         adjBoth[i].clear();
     }
     solution = {0, 0, 0, 0};
+}
+
+bool elemInVec(vector<int> v, int elem) {
+    for (int i : v) {
+        if (i == elem) {
+            return true;
+        }
+    }
+    return false;
 }
 
 int bikeLaneLen(vector<int> circuito, int raiz) {
@@ -42,11 +56,37 @@ int bikeLaneLen(vector<int> circuito, int raiz) {
         visited[i] = false;
         visitedRaiz[i] = -1;
     }
-        
+      
+    // Nao funcional
+    /*
+    for (auto w : adjBoth[raiz]) { // Pontos que a raiz aponta
+        auxlen = -1;
+        if ((!elemInVec(circuito, w[0]))) {
+            continue;
+        }
+        int W = w[0];                   // Ponto
+        int dist = w[1];                // Distancia
+        if ((dist < auxlen) || (auxlen == -1)) {
+            auxlen = dist;
+        }
+        if (auxlen != -1) {
+            //len -= visitedRaiz[W];
+            len += auxlen;
+            visitedRaiz[W] = auxlen;
+            visitedByRaiz.push_back(W);
+            cout << "Ligacao [" << raiz + 1 << "]" << "[" << W + 1 << "]" << " Comprimento:" << auxlen << endl;
+        }
+        else if ((visitedRaiz[W] != -1) && (auxlen < visitedRaiz[W])) {
+            len -= visitedRaiz[W];
+            len += auxlen;
+            visitedRaiz[W] = auxlen;
+            cout << "Ligacao [" << raiz + 1 << "]" << "[" << W + 1 << "] Replaced! " << " Comprimento:" << auxlen << endl;
+        }
+    }*/
 
     for (auto w : adj[raiz]) { // Pontos que a raiz aponta
         auxlen = -1;
-        if (find(circuito.begin(), circuito.end(), w[0]) == circuito.end()) {
+        if (!elemInVec(circuito, w[0])) {
             continue;
         }
         int W = w[0];                   // Ponto
@@ -69,7 +109,7 @@ int bikeLaneLen(vector<int> circuito, int raiz) {
 
     for (auto w : adjLanes[raiz]) { // Pontos que a apontam para a raiz
         auxlen = -1;
-        if (find(circuito.begin(), circuito.end(), w[0]) == circuito.end()) {
+        if (!elemInVec(circuito, w[0])) {
             continue;
         }
         int W = w[0];                   // Ponto
@@ -90,19 +130,21 @@ int bikeLaneLen(vector<int> circuito, int raiz) {
             }
             else if ((visitedRaiz[W] != -1) && (auxlen < visitedRaiz[W])) {
                 len -= visitedRaiz[W];
+                visitedRaiz[W] = auxlen;
                 len += auxlen;
                 //cout << "Ligacao [" << raiz + 1 << "]" << "[" << W + 1 << "] Replaced! " << " Comprimento:" << auxlen << endl;
             }
         }
     }
 
+    //cout << "LEN ATUAL: " << len << endl;
     for (auto i : circuito) {
         if ((!visited[i]) && (i != raiz)) {
         //if (true) {
             auxlen = -1;
             auxJ = -1;
             for (auto j : adjLanes[i]) {
-                if (( j[0] == raiz) || (find(circuito.begin(), circuito.end(), j[0]) == circuito.end()) || (find(visitedByRaiz.begin(), visitedByRaiz.end(), j[0]) != visitedByRaiz.end() && find(visitedByRaiz.begin(), visitedByRaiz.end(), i) != visitedByRaiz.end())) {
+                if (( j[0] == raiz) || (!elemInVec(circuito, j[0])) || (elemInVec(visitedByRaiz, j[0]) && elemInVec(visitedByRaiz, i))) {
                     continue;
                 }
                 int J = j[0];                   // Ponto
@@ -133,6 +175,56 @@ int bikeLaneLen(vector<int> circuito, int raiz) {
     cout << "LEN: " << len << endl;
     */
 
+    return len;
+}
+
+int findKruskal(int a) {
+    if (setKruskal[a] != a)
+        setKruskal[a] = findKruskal(setKruskal[a]);
+    return setKruskal[a];
+}
+
+void linkKruskal(int a, int b) {
+    if (rankKruskal[a] > rankKruskal[b]) {
+        setKruskal[b] = a;
+    }
+    else {
+        setKruskal[a] = b;
+    }
+    if (rankKruskal[a] == rankKruskal[b]) {
+        rankKruskal[b]++;
+    }
+}
+
+void make_setKruskal() {
+    for (int i = 0; i < n; i++) {
+        setKruskal[i] = i;
+        rankKruskal[i] = 0;
+    }
+}
+
+void unionKruskal(int a, int b) {
+    linkKruskal(findKruskal(a), findKruskal(b));
+}
+
+int bikeLaneLenV2() { // Kruskal
+    int len = 0;
+    setKruskal = new int[n];
+    rankKruskal = new int[n];
+
+    make_setKruskal();
+    sort(adjKruskal.begin(), adjKruskal.end());
+
+    for (auto w : adjKruskal) {
+        int u = w.second.first;
+        int v = w.second.second;
+        if (findKruskal(u) != findKruskal(v)) {
+            //cout << "Ligacao [" << u + 1 << "]" << "[" << v + 1 << "]" << " Comprimento:" << w.first << endl;
+            len += w.first;
+            unionKruskal(u, v);
+        }
+    }
+    //cout << "LEN: " << len << endl;
     return len;
 }
 
@@ -178,7 +270,16 @@ void Tarjan(int v, bool* visited) {
         }
         if (q > 2) {
             //cout << "RAIZ:" << v + 1 << endl;
-            int lenbikeLane = bikeLaneLen(auxSolution, v);
+            adjKruskal.clear();
+            for (int i : auxSolution) {
+                for (auto j : adj[i]) {
+                    if (elemInVec(auxSolution, j[0])) {
+                        adjKruskal.push_back({ j[1], {i, j[0]} });
+                    }
+                }
+            }
+            //int lenbikeLane = bikeLaneLen(auxSolution, v);
+            int lenbikeLane = bikeLaneLenV2();
             if ((lenbikeLane > solution[3])) {
                 solution[2] = lenbikeLane;
             }
@@ -233,8 +334,6 @@ int main() {
             adjBoth[y - 1].push_back({ x - 1, d });
         }
         //cout << "Caso [" << i + 1 << "]:" << endl;
-        if (adj.size() < 0)
-            return 0;
         bikeLanes();
         //cout << "R[";
         cout << solution[0];
@@ -246,8 +345,13 @@ int main() {
         cleanup();
     }
 
+    // Tarjan
     delete[] low;
     delete[] dfs;
+
+    // Kruskal
+    delete[] setKruskal;
+    delete[] rankKruskal;
 
     return 0;
 }
