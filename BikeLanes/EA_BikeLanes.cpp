@@ -197,7 +197,7 @@ void linkKruskal(int a, int b) {
 }
 
 void make_setKruskal() {
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n+1; i++) {
         setKruskal[i] = i;
         rankKruskal[i] = 0;
     }
@@ -209,8 +209,8 @@ void unionKruskal(int a, int b) {
 
 int bikeLaneLenV2() { // Kruskal
     int len = 0;
-    setKruskal = new int[n];
-    rankKruskal = new int[n];
+    setKruskal = new int[n+1];
+    rankKruskal = new int[n+1];
 
     make_setKruskal();
     sort(adjKruskal.begin(), adjKruskal.end());
@@ -272,7 +272,7 @@ void Tarjan(int v, bool* visited) {
             //cout << "RAIZ:" << v + 1 << endl;
             adjKruskal.clear();
             for (int i : auxSolution) {
-                for (auto j : adj[i]) {
+                for (auto j : adjBoth[i]) {
                     if (elemInVec(auxSolution, j[0])) {
                         adjKruskal.push_back({ j[1], {i, j[0]} });
                     }
@@ -335,7 +335,7 @@ int main() {
         }
         //cout << "Caso [" << i + 1 << "]:" << endl;
         bikeLanes();
-        //cout << "R[";
+        //cout << "[";
         cout << solution[0];
         for (int i = 1; i < q; i++) {                        //Imprime output
             cout << " " << solution[i];
