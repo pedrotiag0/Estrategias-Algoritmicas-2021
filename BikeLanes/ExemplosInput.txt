@@ -107,3 +107,11 @@ Input (Example 4) --> Tem que se descomentar a seguinte linha: adj[y - 1].push_b
 Output
 1 9 37 37
 _________________________
+Input (Example 5)
+1
+4 2 4
+2 1 3
+1 2 4
+Output
+1 2 3 3
+_________________________

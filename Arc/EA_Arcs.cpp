@@ -4,191 +4,231 @@
 //              Pedro Marques   2018285632
 //
 // ________________________________________
-//| ------ Problem B - ARChitecture ------ |
+//| ------- Problem C - BikeLanes -------- |
 
 #include <iostream>
 #include <vector>
+#include <array>
+#include <stack>
+#include <algorithm>    // std::sort
+
+#define MAXPOI 1000
 
 using namespace std;
 
-#define MODULO 1000000007
+// Variaveis globais
+int n;                                              // Numero Pontos de Interesse
+int m;                                              // Numero de conexões entre Pontos de Interesse
+int q;                                              // Numero de perguntas (1-4)
+vector<int> solution = {0, 0, 0, 0};                // Solucao
+array <vector<array<int, 2>>, MAXPOI> adj;          // Lista de adjacencia (ponto liga a pontos)
+array <vector<array<int, 2>>, MAXPOI> adjLanes;     // Lista de adjacencia (usada para ver o comprimento das lanes) (pontos que se ligam ao ponto)
+array <vector<array<int, 2>>, MAXPOI> adjBoth;      // Lista de adjacencia ambas direcoes
+vector< pair<int, pair<int, int>> > adjKruskal;     // Lista de adjacencia apenas os usados em Kruskal
 
-// Variaveis Globais
-// n -> Comprimento da sala | h -> Altura dos blocos | H -> Altura da sala
-int n, h, H;
-int possibilidades;
-int** cacheSubir;
-int** cacheDescer;
+// Tarjan
+int t;
+int* low;
+int* dfs;
+stack<int>* S = new stack<int>();
 
-int mod_abs(int a, int mod) {
-    return ((a % mod) + mod) % mod;
-}
+// Kruskal
+int* setKruskal;
+int* rankKruskal;
 
-int mod_add(int a, int b, int mod) {
-    return (mod_abs(a, mod) + mod_abs(b, mod)) % mod;
-}
-
-int mod_sub(int a, int b, int mod) {
-    return mod_add(a, -b, mod);
-}
-
-void printCacheSubir() {
-    cout << "CacheSubir:" << endl;
-    for (int y = H - 1; y >= 0; y--) {
-        for (int x = 0; x < n; x++) {
-            cout << cacheSubir[x][y] << "\t";
-        }
-        cout << endl;
+void cleanup() {
+    for (int i = 0; i < n + 1; i++) {
+        adj[i].clear();
+        adjLanes[i].clear();
+        adjBoth[i].clear();
     }
-    cout << endl;
+    solution = {0, 0, 0, 0};
 }
 
-void printCacheDescer() {
-    cout << "CacheDescer:" << endl;
-    for (int y = H - 1; y >= 0; y--) {
-        for (int x = 0; x < n; x++) {
-            cout << cacheDescer[x][y] << "\t";
-        }
-        cout << endl;
-    }
-    cout << endl;
-}
-
-void zeroCache() {
-    for (int x = 0; x < n; x++) {
-        for (int y = 0; y < H; y++) {
-            cacheSubir[x][y] = 0;
-            cacheDescer[x][y] = 0;
-            /*if (y < h) {
-                cacheDir[x][y] = 1;
-            }*/
+bool elemInVec(vector<int> v, int elem) {
+    for (int i : v) {
+        if (i == elem) {
+            return true;
         }
     }
-    for (int i = n - 1; i > 1; i--)
-    {
-        cacheDescer[i][h - 1] = 1;
-    }
-    // Prepara a matriz de subida (esquerda) com o nº de combinacoes possiveis para subir até determinada coordenada
-    cacheSubir[0][h - 1] = 1;
+    return false;
 }
 
-bool possivelDescer(int altura, int pos) { // Retorna true se for possivel descer e tocar no solo
-    int restantesdir = n - (pos + 1);
-    int melhorCasodir = altura - (restantesdir * (h - 1));
-    int restantesesq = pos;
-    int melhorCasoesq = altura - (restantesesq * (h - 1));
-    return (melhorCasodir <= h && (melhorCasoesq <= h));
+int findKruskal(int a) {
+    if (setKruskal[a] != a)
+        setKruskal[a] = findKruskal(setKruskal[a]);
+    return setKruskal[a];
 }
 
-int calculaLimiares(int Hmax) {
-    // Funcao que calcula os valores min e maximo que podemos subir e tocar (ou nao) no teto, contando que é sempre possível retornar ao solo.
-
-    int alturaAtual = h;
-    int i;
-    for (i = 1; i < n; i++) {
-        if ((alturaAtual + (h - 1) < Hmax) && (possivelDescer(alturaAtual + (h - 1), i))) {
-            alturaAtual += h - 1;
-        }
-        else {
-            i--;
-            break;
-        }
+void linkKruskal(int a, int b) {
+    if (rankKruskal[a] > rankKruskal[b]) {
+        setKruskal[b] = a;
     }
-
-    for (int j = 1; j < h; j++) { // Verifica se consegue "tocar" no teto
-        if ((alturaAtual + j == Hmax) && (possivelDescer(alturaAtual + j, i + 1))) {
-            i++;
-            break;
-        }
+    else {
+        setKruskal[a] = b;
     }
-
-    return i;
+    if (rankKruskal[a] == rankKruskal[b]) {
+        rankKruskal[b]++;
+    }
 }
 
-void arcV3esq() {
+void make_setKruskal() {
+    for (int i = 0; i < n; i++) {
+        setKruskal[i] = i;
+        rankKruskal[i] = 0;
+    }
+}
 
+void unionKruskal(int a, int b) {
+    linkKruskal(findKruskal(a), findKruskal(b));
+}
 
-    for (int i = 1; i < n - 1; i++)
-    {
-        for (int j = h; j < H; j++) //Avanca ao longo da matriz
-        {
-            if (j > ((i + 1) * (h - 1)))
-                break;
-            // Esq
-            cacheSubir[i][j] = mod_sub(cacheSubir[i][j - 1], cacheSubir[i - 1][j - h], MODULO);
-            cacheSubir[i][j] = mod_add(cacheSubir[i][j], cacheSubir[i - 1][j - 1], MODULO);
+int bikeLaneLenV2() { // Kruskal
+    int len = 0;
+    setKruskal = new int[n];
+    rankKruskal = new int[n];
 
-            // Dir
-            int inv_i = n - (i + 1);
-            if(j - 1 != h - 1)
-                cacheDescer[inv_i][j] = mod_sub(cacheDescer[inv_i][j - 1], cacheDescer[inv_i + 1][j - h], MODULO);
-            cacheDescer[inv_i][j] = mod_add(cacheDescer[inv_i][j], cacheDescer[inv_i + 1][j - 1], MODULO);
+    make_setKruskal();
+    sort(adjKruskal.begin(), adjKruskal.end());
+
+    for (auto w : adjKruskal) {
+        int u = w.second.first;
+        int v = w.second.second;
+        if (findKruskal(u) != findKruskal(v)) {
+            //cout << "Ligacao [" << u + 1 << "]" << "[" << v + 1 << "]" << " Comprimento:" << w.first << endl;
+            len += w.first;
+            unionKruskal(u, v);
+        }
+    }
+    //cout << "LEN: " << len << endl;
+    return len;
+}
+
+void Tarjan(int v, bool* visited) {
+    low[v] = t;
+    dfs[v] = t;
+    t += 1;
+    S->push(v);
+    visited[v] = true;
+
+    for (auto w : adj[v]) {
+        int W = w[0];
+        if (dfs[W] == -1) {
+            Tarjan(W, visited);
+            low[v] = min(low[v], low[W]);
+        }
+        else if (visited[W]) {
+            low[v] = min(low[v], dfs[W]);
         }
     }
 
-    //printCacheDescer();
-    //printCacheSubir();
-
-    for (int i = h + 1; i <= H; i++)
-    {
-        int limiar = calculaLimiares(i);
-        for (int j = limiar; j < n - limiar; j++)
-        {
-            if (j > ((i + 1) * (h - 1)))
-                break;
-            long long e = cacheSubir[j][i - 1];
-            long long d = cacheDescer[j][i - 1];
-            int res = int((e * d) % MODULO);
-            possibilidades = mod_add(possibilidades, res, MODULO);
+    int w = 0;
+    vector<int> auxSolution;
+    if (low[v] == dfs[v]) {         // v e raiz se se verificar
+        while (S->top() != v) {
+            w = (int)S->top();
+            //cout << w + 1 << " ";
+            visited[w] = false;
+            auxSolution.push_back(w);
+            S->pop();
+        }
+        w = (int)S->top();
+        //cout << w + 1 << endl;
+        visited[w] = false;
+        auxSolution.push_back(w);
+        S->pop();
+    }
+    int len = auxSolution.size();
+    if (len > 1) {
+        solution[0]++;
+        if ((q > 1) && (len > solution[1])) {
+            solution[1] = len;
+        }
+        if (q > 2) {
+            //cout << "RAIZ:" << v + 1 << endl;
+            adjKruskal.clear();
+            for (int i : auxSolution) {
+                for (auto j : adjBoth[i]) {
+                    if (elemInVec(auxSolution, j[0])) {
+                        adjKruskal.push_back({ j[1], {i, j[0]} });
+                    }
+                }
+            }
+            //int lenbikeLane = bikeLaneLen(auxSolution, v);
+            int lenbikeLane = bikeLaneLenV2();
+            if ((lenbikeLane > solution[2])) {
+                solution[2] = lenbikeLane;
+            }
+            if (q > 3) {
+                solution[3] += lenbikeLane;
+            }
         }
     }
+}
+
+void bikeLanes() {
+    low = new int[n];
+    dfs = new int[n];
+    bool* visited = new bool[n];
+    S->empty();
+    while (!S->empty()){S->pop();}                  // Limpar Stack
+    t = 1;
+
+    for (int i = 0; i < n; i++) {
+        low[i] = 0;
+        dfs[i] = -1;
+        visited[i] = false;
+    }
+
+    for (int i = 0; i < n; i++) {
+        if (dfs[i] == -1) {
+        //if (!visited[i]) {
+            //cout << "i[" << i + 1 << "]" << endl;
+            Tarjan(i, visited);
+        }
+    }
+
+    delete[] visited;
 }
 
 int main() {
     // Ler de maneira eficiente
-    ios_base::sync_with_stdio(0);
-    cin.tie(0);
-
-    vector<int> solution;                           // Solucao
+    std::ios_base::sync_with_stdio(0);
+    std::cin.tie(0);
 
     int total;                                      // Numero de casos de teste
     cin >> total;
 
-    if (total > 20)
-        return 0;
-
-    for (int i = 0; i < total; i++) {               // Le e processa cada caso de teste
-        cin >> n >> h >> H;
-        if ((n <= 500) && (h <= 500) && (H <= 60000) && (n > 2) && (h < H)) {
-            possibilidades = 0;
-            
-            // Cria caches
-            cacheSubir = new int* [n];
-            cacheDescer = new int* [n];
-            for (int i = 0; i < n; ++i) {
-                cacheSubir[i] = new int[H];
-                cacheDescer[i] = new int[H];
-            }
-            zeroCache();
-            arcV3esq();
-            solution.push_back(mod_abs(possibilidades, MODULO));
+    for (int i = 0; i < total; i++) {
+        cin >> n >> m >> q;
+        for (int j = 0; j < m; j++) {
+            int x, y, d;
+            cin >> x >> y >> d;
+            adj[x-1].push_back({ y-1, d });
+            //adj[y - 1].push_back({ x - 1, d });
+            adjLanes[y - 1].push_back({ x - 1, d });
+            adjBoth[x - 1].push_back({ y - 1, d });
+            adjBoth[y - 1].push_back({ x - 1, d });
         }
-        else
-            solution.push_back(0);
+        //cout << "Caso [" << i + 1 << "]:" << endl;
+        bikeLanes();
+        //cout << "[";
+        cout << solution[0];
+        for (int i = 1; i < q; i++) {                        //Imprime output
+            cout << " " << solution[i];
+        }
+        //cout << "]";
+        cout << endl;
+        cleanup();
     }
 
-    // Cleanup das caches
-    for (int i = 0; i < n; ++i)
-    {
-        delete[] cacheSubir[i];
-        delete[] cacheDescer[i];
-    }
-    delete[] cacheSubir;
-    delete[] cacheDescer;
+    // Tarjan
+    delete[] low;
+    delete[] dfs;
 
-    for (auto i : solution) {                        //Imprime output
-        cout << i << endl;
-    }
+    // Kruskal
+    delete[] setKruskal;
+    delete[] rankKruskal;
 
     return 0;
 }
