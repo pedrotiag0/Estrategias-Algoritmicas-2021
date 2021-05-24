@@ -22,13 +22,13 @@ int m;                                              // Numero de conexões entre 
 int q;                                              // Numero de perguntas (1-4)
 vector<int> solution = {0, 0, 0, 0};                // Solucao
 array <vector<pair<int, int>>, MAXPOI> adj;         // Lista de adjacencia (ponto i liga a uma lista de pontos (first-> ponto a que liga | second-> distancia)
-vector< pair<int, pair<int, int>> > adjKruskal;     // Lista de adjacencia para as ligacoes usadas em Kruskal. {Distancia, PontoA, PontoB} (A liga a B e é bidirecional [bike lane])
+vector< pair<int, pair<int, int>> > adjKruskal;     // Lista de adjacencia para as ligacoes usadas em Kruskal. {Distancia, {PontoA, PontoB}} (A liga a B e é bidirecional [bike lane])
 
 // Tarjan
 int t;
 int* low;
 int* dfs;
-stack<int>* S = new stack<int>();
+stack<int> S;
 
 // Kruskal
 int* setKruskal;
@@ -100,20 +100,20 @@ int Kruskal() { // Kruskal
     return len;
 }
 
-void Tarjan(int v, bool* visited) {
+void Tarjan(int v, bool* inStack) {
     low[v] = t;
     dfs[v] = t;
     t += 1;
-    S->push(v);
-    visited[v] = true;
+    S.push(v);
+    inStack[v] = true;
 
     for (auto w : adj[v]) {
         int W = w.first;
         if (dfs[W] == -1) {
-            Tarjan(W, visited);
+            Tarjan(W, inStack);
             low[v] = min(low[v], low[W]);
         }
-        else if (visited[W]) {
+        else if (inStack[W]) {
             low[v] = min(low[v], dfs[W]);
         }
     }
@@ -121,16 +121,13 @@ void Tarjan(int v, bool* visited) {
     int w = 0;
     vector<int> auxSolution;        // Guarda circuito
     if (low[v] == dfs[v]) {
-        while (S->top() != v) {
-            w = (int)S->top();
-            visited[w] = false;
+        do {
+            w = S.top();
+            inStack[w] = false;
             auxSolution.push_back(w);
-            S->pop();
+            S.pop();
         }
-        w = (int)S->top();
-        visited[w] = false;
-        auxSolution.push_back(w);
-        S->pop();
+        while (w != v); 
     }
     int len = auxSolution.size();
     if (len > 1) {                                      // Cada circuito tem de ter pelo menos 2 POI
@@ -143,7 +140,7 @@ void Tarjan(int v, bool* visited) {
             for (int i : auxSolution) {
                 for (auto j : adj[i]) {
                     if (elemInVec(auxSolution, j.first)) {                  // Verifica se o elemento consta no circuito atual
-                        adjKruskal.push_back({ j.second, {i, j.first} });   // Constroi vetor de edges
+                        adjKruskal.push_back({ j.second, {i, j.first} });   // Constroi vetor de edges  {d, {a, b}}
                     }
                 }
             }
@@ -161,24 +158,23 @@ void Tarjan(int v, bool* visited) {
 void bikeLanes() {
     low = new int[n];
     dfs = new int[n];
-    bool* visited = new bool[n];
-    S->empty();
-    while (!S->empty()){S->pop();}                  // Limpar Stack
+    bool* inStack = new bool[n];
+    while (!S.empty()){S.pop();}                  // Limpar Stack
     t = 1;
 
     for (int i = 0; i < n; i++) {
         low[i] = 0;
         dfs[i] = -1;
-        visited[i] = false;
+        inStack[i] = false;
     }
 
     for (int i = 0; i < n; i++) {
         if (dfs[i] == -1) {
-            Tarjan(i, visited);
+            Tarjan(i, inStack);
         }
     }
 
-    delete[] visited;
+    delete[] inStack;
 }
 
 int main() {
