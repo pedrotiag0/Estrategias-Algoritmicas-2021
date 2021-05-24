@@ -152,6 +152,13 @@ void Tarjan(int v, bool* inStack) {
                 solution[3] += lenbikeLane;
             }
         }
+        /*
+        cout << "Circuito:";
+        for (auto i : auxSolution) {
+            cout << i + 1 << " ";
+        }
+        cout << endl;
+        */
     }
 }
 
