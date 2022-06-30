@@ -12,5 +12,5 @@ Conjunto de Problemas de Estratégias Algorítmicas.
 
 //                                           //
 
-// ________________________________________  //
+//              All code in C++              //
 
