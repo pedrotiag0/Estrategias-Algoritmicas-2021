@@ -1,4 +1,4 @@
-# EA-1-2048
+# Algorithmic Strategies
 Conjunto de Problemas de Estratégias Algorítmicas.
 
 
