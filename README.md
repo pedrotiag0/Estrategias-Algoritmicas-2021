@@ -2,7 +2,7 @@
 Conjunto de Problemas de Estratégias Algorítmicas.
 
 
-//      EA   |   2020/2021   |   FCTUC       //
+EA   |   2020/2021   |   FCTUC
 
 Autores:     
 
@@ -10,5 +10,6 @@ Autores:
 
 - Pedro Marques   2018285632
 
-//              All code in C++              //
+
+All code in C++
 
